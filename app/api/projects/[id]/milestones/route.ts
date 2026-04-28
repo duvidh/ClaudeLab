@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { notify } from '@/lib/notify'
 
 export async function POST(
   req: NextRequest,
@@ -28,7 +29,15 @@ export async function PATCH(
     const milestone = await prisma.milestone.update({
       where: { id: milestoneId, projectId },
       data,
+      include: { project: { select: { name: true } } },
     })
+    if (data.status === 'DONE') {
+      await notify(
+        `אבן דרך "${milestone.name}" הושלמה בפרויקט "${milestone.project.name}"`,
+        'success',
+        `project:${projectId}`
+      )
+    }
     return NextResponse.json({ data: milestone })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה בעדכון אבן דרך' }, { status: 500 })

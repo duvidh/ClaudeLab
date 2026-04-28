@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Phone,
   Mail,
@@ -95,11 +96,14 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-xl font-bold text-white">{lead.fullName}</h1>
             <StatusBadge type="lead" value={lead.status} />
-            {isConverted && (
-              <span className="flex items-center gap-1 text-xs text-teal-400">
-                <CheckCircle2 size={14} />
-                הומר ללקוח
-              </span>
+            {isConverted && lead.client && (
+              <Link
+                href={`/clients/${lead.client.id}`}
+                className="flex items-center gap-1 text-xs text-teal-400 hover:text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full transition-colors"
+              >
+                <CheckCircle2 size={13} />
+                לכרטיס הלקוח
+              </Link>
             )}
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-400">

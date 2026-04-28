@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronRight, Trash2, FolderPlus } from 'lucide-react'
+import { ChevronRight, Trash2, FolderPlus, Copy } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
@@ -39,6 +39,7 @@ export default function QuoteDetailPage() {
   const [projectOpen, setProjectOpen] = useState(false)
   const [creatingProject, setCreatingProject] = useState(false)
   const [projectName, setProjectName] = useState('')
+  const [duplicating, setDuplicating] = useState(false)
 
   useEffect(() => {
     fetch(`/api/quotes/${id}`)
@@ -56,6 +57,17 @@ export default function QuoteDetailPage() {
       const json = await res.json()
       setQuote((prev: any) => ({ ...prev, status: json.data.status }))
     }
+  }
+
+  async function handleDuplicate() {
+    setDuplicating(true)
+    try {
+      const res = await fetch(`/api/quotes/${id}/duplicate`, { method: 'POST' })
+      if (res.ok) {
+        const json = await res.json()
+        router.push(`/quotes/${json.data.id}`)
+      }
+    } finally { setDuplicating(false) }
   }
 
   async function handleCreateProject(e: React.FormEvent) {
@@ -110,6 +122,10 @@ export default function QuoteDetailPage() {
               />
             </div>
             <PDFExportButton quote={quote} />
+            <Button variant="secondary" size="sm" onClick={handleDuplicate} loading={duplicating}>
+              <Copy size={14} />
+              שכפל כגרסה חדשה
+            </Button>
             {quote.status === 'APPROVED' && !quote.projectId && (
               <Button size="sm" onClick={() => { setProjectName(`פרויקט - ${quote.client?.name}`); setProjectOpen(true) }}>
                 <FolderPlus size={14} />

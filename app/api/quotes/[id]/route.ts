@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { notify } from '@/lib/notify'
 
 export async function GET(
   _req: NextRequest,
@@ -33,6 +34,11 @@ export async function PATCH(
     const { id } = await params
     const body = await req.json()
     const quote = await prisma.quote.update({ where: { id }, data: body })
+    if (body.status === 'APPROVED') {
+      await notify(`הצעת מחיר ${quote.quoteNumber} אושרה`, 'success', `quote:${id}`)
+    } else if (body.status === 'REJECTED') {
+      await notify(`הצעת מחיר ${quote.quoteNumber} נדחתה`, 'warning', `quote:${id}`)
+    }
     return NextResponse.json({ data: quote })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה בעדכון הצעת המחיר' }, { status: 500 })
