@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
-import { Phone, Mail, MapPin, Calendar, ChevronLeft, Trash2 } from 'lucide-react'
+import { Phone, Mail, MapPin, Calendar, Trash2, ChevronUp, ChevronDown } from 'lucide-react'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { formatDate } from '@/lib/utils'
@@ -17,6 +17,11 @@ const LEAD_STATUS_OPTIONS = [
   { value: 'LOST', label: 'הפסד' },
 ]
 
+const URGENCY_ORDER: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 }
+
+type SortField = 'fullName' | 'city' | 'urgency' | 'status' | 'entryDate' | 'assignedRep'
+type SortDir = 'asc' | 'desc'
+
 interface LeadsTableProps {
   leads: Lead[]
   onDelete?: (id: string) => void
@@ -27,24 +32,41 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [openStatusId, setOpenStatusId] = useState<string | null>(null)
+  const [sortField, setSortField] = useState<SortField | null>('entryDate')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
   const statusRef = useRef<HTMLDivElement>(null)
 
   const confirmLead = leads.find((l) => l.id === confirmId)
 
-  useEffect(() => {
-    setLeads(initialLeads)
-  }, [initialLeads])
+  useEffect(() => { setLeads(initialLeads) }, [initialLeads])
 
   useEffect(() => {
     if (!openStatusId) return
     function handleClick(e: MouseEvent) {
-      if (statusRef.current && !statusRef.current.contains(e.target as Node)) {
-        setOpenStatusId(null)
-      }
+      if (statusRef.current && !statusRef.current.contains(e.target as Node)) setOpenStatusId(null)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [openStatusId])
+
+  function toggleSort(field: SortField) {
+    if (sortField === field) setSortDir((d) => d === 'asc' ? 'desc' : 'asc')
+    else { setSortField(field); setSortDir('asc') }
+  }
+
+  const sorted = useMemo(() => {
+    if (!sortField) return leads
+    return [...leads].sort((a, b) => {
+      let va: string | number = ''
+      let vb: string | number = ''
+      if (sortField === 'urgency') { va = URGENCY_ORDER[a.urgency] ?? 0; vb = URGENCY_ORDER[b.urgency] ?? 0 }
+      else if (sortField === 'entryDate') { va = new Date(a.entryDate).getTime(); vb = new Date(b.entryDate).getTime() }
+      else { va = (a[sortField] ?? '').toString().toLowerCase(); vb = (b[sortField] ?? '').toString().toLowerCase() }
+      if (va < vb) return sortDir === 'asc' ? -1 : 1
+      if (va > vb) return sortDir === 'asc' ? 1 : -1
+      return 0
+    })
+  }, [leads, sortField, sortDir])
 
   async function handleStatusChange(id: string, status: string) {
     setOpenStatusId(null)
@@ -61,52 +83,67 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
     setDeleting(true)
     try {
       const res = await fetch(`/api/leads/${confirmId}`, { method: 'DELETE' })
-      if (res.ok) {
-        setLeads((prev) => prev.filter((l) => l.id !== confirmId))
-        onDelete?.(confirmId)
-        setConfirmId(null)
-      }
-    } finally {
-      setDeleting(false)
-    }
+      if (res.ok) { setLeads((prev) => prev.filter((l) => l.id !== confirmId)); onDelete?.(confirmId); setConfirmId(null) }
+    } finally { setDeleting(false) }
   }
 
   if (leads.length === 0) return null
+
+  function Th({ field, label }: { field: SortField; label: string }) {
+    const active = sortField === field
+    return (
+      <th
+        onClick={() => toggleSort(field)}
+        className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors"
+      >
+        <span className="inline-flex items-center gap-1">
+          {label}
+          {active
+            ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+            : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
+        </span>
+      </th>
+    )
+  }
 
   return (
     <>
       <div className="overflow-x-auto rounded-xl border border-gray-700">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-800/60 border-b border-gray-700">
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">שם</th>
+            <tr className="bg-gray-800/60 border-b border-gray-700 group">
+              <Th field="fullName" label="שם" />
               <th className="px-4 py-3 font-semibold text-gray-400 text-right">טלפון</th>
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">עיר</th>
+              <Th field="city" label="עיר" />
               <th className="px-4 py-3 font-semibold text-gray-400 text-right">סוג עבודה</th>
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">דחיפות</th>
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">סטטוס</th>
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">תאריך כניסה</th>
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">נציג</th>
+              <Th field="urgency" label="דחיפות" />
+              <Th field="status" label="סטטוס" />
+              <Th field="entryDate" label="תאריך כניסה" />
+              <Th field="assignedRep" label="נציג" />
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
-            {leads.map((lead) => (
+            {sorted.map((lead) => (
               <tr key={lead.id} className="hover:bg-gray-800/40 transition-colors group">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-white">{lead.fullName}</div>
+                  <Link href={`/leads/${lead.id}`} className="font-medium text-white hover:text-blue-300 transition-colors">
+                    {lead.fullName}
+                  </Link>
                   {lead.email && (
                     <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
                       <Mail size={11} />
-                      {lead.email}
+                      <a href={`mailto:${lead.email}`} className="hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                        {lead.email}
+                      </a>
                     </div>
                   )}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 text-gray-300">
+                  <a href={`tel:${lead.primaryPhone}`} className="flex items-center gap-1 text-gray-300 hover:text-blue-400 transition-colors">
                     <Phone size={13} className="text-gray-500" />
                     {lead.primaryPhone}
-                  </div>
+                  </a>
                 </td>
                 <td className="px-4 py-3">
                   {lead.city && (
@@ -117,18 +154,13 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-gray-300">{lead.workType || '—'}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge type="priority" value={lead.urgency} />
-                </td>
+                <td className="px-4 py-3"><StatusBadge type="priority" value={lead.urgency} /></td>
                 <td className="px-4 py-3">
                   {lead.status === 'CONVERTED' ? (
                     <StatusBadge type="lead" value={lead.status} />
                   ) : (
                     <div className="relative inline-block" ref={openStatusId === lead.id ? statusRef : undefined}>
-                      <button
-                        onClick={() => setOpenStatusId(openStatusId === lead.id ? null : lead.id)}
-                        className="cursor-pointer hover:opacity-80 transition-opacity"
-                      >
+                      <button onClick={() => setOpenStatusId(openStatusId === lead.id ? null : lead.id)} className="cursor-pointer hover:opacity-80 transition-opacity">
                         <StatusBadge type="lead" value={lead.status} />
                       </button>
                       {openStatusId === lead.id && (
@@ -156,20 +188,9 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
                 <td className="px-4 py-3 text-gray-400 text-xs">{lead.assignedRep || '—'}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => setConfirmId(lead.id)}
-                      className="p-1 text-gray-500 hover:text-red-400 transition-colors"
-                      title="מחק"
-                    >
+                    <button onClick={() => setConfirmId(lead.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
                       <Trash2 size={14} />
                     </button>
-                    <Link
-                      href={`/leads/${lead.id}`}
-                      className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
-                    >
-                      פרטים
-                      <ChevronLeft size={13} />
-                    </Link>
                   </div>
                 </td>
               </tr>
@@ -177,7 +198,6 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
           </tbody>
         </table>
       </div>
-
       <ConfirmModal
         open={!!confirmId}
         onClose={() => setConfirmId(null)}

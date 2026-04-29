@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   MapPin, Calendar, User, Users, DollarSign,
   TrendingUp, TrendingDown, FolderKanban, Trash2, Plus,
+  Upload, Download, File as FileIcon,
 } from 'lucide-react'
 import { Tabs } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
@@ -19,7 +20,8 @@ import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { MilestoneTimeline } from '@/components/projects/MilestoneTimeline'
 import { ProjectForm } from '@/components/projects/ProjectForm'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import type { Project, Client, Milestone, Quote, Payment, Task } from '@/types'
+import { useSettingsLists } from '@/lib/useSettingsLists'
+import type { Project, Client, Milestone, Quote, Payment, Task, ProjectFile } from '@/types'
 
 type ProjectWithRelations = Project & {
   client: Client
@@ -27,6 +29,7 @@ type ProjectWithRelations = Project & {
   quotes: Quote[]
   payments: Payment[]
   tasks: Task[]
+  files: ProjectFile[]
 }
 
 const TABS = [
@@ -34,6 +37,7 @@ const TABS = [
   { id: 'milestones', label: 'אבני דרך' },
   { id: 'financials', label: 'כספים' },
   { id: 'tasks', label: 'משימות' },
+  { id: 'documents', label: 'מסמכים' },
 ]
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -57,8 +61,17 @@ interface ProjectDetailProps {
 }
 
 export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
+  const lists = useSettingsLists()
   const [project, setProject] = useState(initialProject)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [files, setFiles] = useState<ProjectFile[]>(initialProject.files)
+  const [activeTab, setActiveTab] = useState(() => {
+    try { return localStorage.getItem(`tab-project-${initialProject.id}`) ?? 'overview' } catch { return 'overview' }
+  })
+
+  function handleTabChange(tab: string) {
+    setActiveTab(tab)
+    try { localStorage.setItem(`tab-project-${initialProject.id}`, tab) } catch {}
+  }
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -75,6 +88,7 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
     count:
       t.id === 'milestones' ? project.milestones.length
       : t.id === 'tasks' ? project.tasks.length
+      : t.id === 'documents' ? files.length
       : undefined,
   }))
 
@@ -170,7 +184,18 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
               {project.client.name}
             </Link>
             {project.address && <span className="flex items-center gap-1"><MapPin size={13} />{project.address}</span>}
-            {project.projectManager && <span className="flex items-center gap-1"><Users size={13} />{project.projectManager}</span>}
+            {project.projectManager && <span className="flex items-center gap-1"><User size={13} />{project.projectManager}</span>}
+            {project.fieldTeam && (() => {
+              try {
+                const team: string[] = JSON.parse(project.fieldTeam)
+                return team.length > 0 ? (
+                  <span className="flex items-center gap-1">
+                    <Users size={13} />
+                    {team.join(', ')}
+                  </span>
+                ) : null
+              } catch { return null }
+            })()}
           </div>
         </div>
         <div className="flex gap-2">
@@ -215,7 +240,7 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
         </div>
       </Card>
 
-      <Tabs tabs={tabsWithCounts} activeTab={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={tabsWithCounts} activeTab={activeTab} onChange={handleTabChange} />
 
       {/* Overview */}
       {activeTab === 'overview' && (
@@ -337,12 +362,24 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
         </div>
       )}
 
+      {/* Documents */}
+      {activeTab === 'documents' && (
+        <ProjectFilesTab projectId={project.id} files={files} onFilesChange={setFiles} />
+      )}
+
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="עריכת פרויקט" size="lg">
         <ProjectForm initialData={project} onSubmit={handleUpdate} onCancel={() => setEditOpen(false)} />
       </Modal>
 
       <Modal open={paymentOpen} onClose={() => setPaymentOpen(false)} title="רישום תשלום" size="sm">
-        <PaymentForm onSubmit={handleAddPayment} onCancel={() => setPaymentOpen(false)} methodOptions={PAYMENT_METHOD_OPTIONS} />
+        <PaymentForm
+          onSubmit={handleAddPayment}
+          onCancel={() => setPaymentOpen(false)}
+          methodOptions={[
+            { value: '', label: 'בחר אמצעי תשלום' },
+            ...lists.paymentMethods.map((m) => ({ value: m, label: m })),
+          ]}
+        />
       </Modal>
 
       <Modal open={taskOpen} onClose={() => setTaskOpen(false)} title="משימה חדשה" size="sm">
@@ -451,5 +488,104 @@ function TaskForm({
         <Button type="button" variant="secondary" onClick={onCancel}>ביטול</Button>
       </div>
     </form>
+  )
+}
+
+// ─── Project Files Tab ────────────────────────────────────────────────────────
+
+function ProjectFilesTab({
+  projectId,
+  files,
+  onFilesChange,
+}: {
+  projectId: string
+  files: ProjectFile[]
+  onFilesChange: (files: ProjectFile[]) => void
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('type', 'other')
+      const res = await fetch(`/api/projects/${projectId}/files`, { method: 'POST', body: fd })
+      if (res.ok) {
+        const json = await res.json()
+        onFilesChange([json.data, ...files])
+      }
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleDelete(fileId: string) {
+    setDeletingId(fileId)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/files`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId }),
+      })
+      if (res.ok) onFilesChange(files.filter((f) => f.id !== fileId))
+    } finally { setDeletingId(null) }
+  }
+
+  const isImage = (name: string) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(name)
+
+  return (
+    <div>
+      <div className="flex justify-end mb-3">
+        <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${uploading ? 'bg-gray-700 text-gray-500' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>
+          <Upload size={14} />
+          {uploading ? 'מעלה...' : 'העלה קובץ'}
+          <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
+        </label>
+      </div>
+
+      {files.length === 0 ? (
+        <EmptyState icon={FileIcon} title="אין מסמכים" action={
+          <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white cursor-pointer">
+            <Upload size={14} />העלה קובץ ראשון
+            <input type="file" className="hidden" onChange={handleUpload} />
+          </label>
+        } />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {files.map((f) => (
+            <div key={f.id} className="group flex items-center gap-3 bg-gray-800 rounded-lg px-3 py-2.5">
+              <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center shrink-0 overflow-hidden">
+                {isImage(f.name) ? (
+                  <img src={f.url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <FileIcon size={16} className="text-gray-400" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">{f.name}</p>
+                <p className="text-xs text-gray-500">{new Date(f.createdAt).toLocaleDateString('he-IL')}</p>
+              </div>
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a href={f.url} download={f.name} className="p-1 text-gray-400 hover:text-blue-400 transition-colors">
+                  <Download size={14} />
+                </a>
+                <button
+                  onClick={() => handleDelete(f.id)}
+                  disabled={deletingId === f.id}
+                  className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

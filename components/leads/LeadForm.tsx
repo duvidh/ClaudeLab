@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Lead } from '@/types'
 
 const STATUS_OPTIONS = [
@@ -80,6 +81,16 @@ interface LeadFormProps {
 }
 
 export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
+  const lists = useSettingsLists()
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([])
+
+  useEffect(() => {
+    fetch('/api/employees?status=ACTIVE')
+      .then((r) => r.json())
+      .then((j) => setEmployees(j.data ?? []))
+      .catch(() => {})
+  }, [])
+
   const [form, setForm] = useState<LeadFormData>({
     ...DEFAULT_FORM,
     ...(initialData
@@ -171,13 +182,20 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
           />
-          <Input
-            id="city"
-            label="עיר/אזור"
-            placeholder="תל אביב"
-            value={form.city}
-            onChange={(e) => set('city', e.target.value)}
-          />
+          <div>
+            <label className="text-sm text-gray-300 font-medium block mb-1">עיר/אזור</label>
+            <input
+              list="lead-form-cities"
+              id="city"
+              placeholder="תל אביב"
+              value={form.city}
+              onChange={(e) => set('city', e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <datalist id="lead-form-cities">
+              {lists.cities.map((c) => <option key={c} value={c} />)}
+            </datalist>
+          </div>
           <div className="col-span-2">
             <Input
               id="propertyAddress"
@@ -208,13 +226,29 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             value={form.status}
             onChange={(e) => set('status', e.target.value)}
           />
-          <Input
-            id="assignedRep"
-            label="נציג אחראי"
-            placeholder="שם הנציג"
-            value={form.assignedRep}
-            onChange={(e) => set('assignedRep', e.target.value)}
-          />
+          {employees.length > 0 ? (
+            <Select
+              id="assignedRep"
+              label="נציג אחראי"
+              value={form.assignedRep}
+              onChange={(e) => set('assignedRep', e.target.value)}
+              options={[
+                { value: '', label: 'ללא שיוך' },
+                ...employees.map((e) => ({ value: e.name, label: e.name })),
+                ...(form.assignedRep && !employees.some((e) => e.name === form.assignedRep)
+                  ? [{ value: form.assignedRep, label: form.assignedRep }]
+                  : []),
+              ]}
+            />
+          ) : (
+            <Input
+              id="assignedRep"
+              label="נציג אחראי"
+              placeholder="שם הנציג"
+              value={form.assignedRep}
+              onChange={(e) => set('assignedRep', e.target.value)}
+            />
+          )}
         </div>
       </section>
 
@@ -224,13 +258,20 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
           פרטי פרויקט מבוקש
         </h3>
         <div className="grid grid-cols-2 gap-3">
-          <Input
-            id="workType"
-            label="סוג עבודה"
-            placeholder="שיפוץ, בניה חדשה..."
-            value={form.workType}
-            onChange={(e) => set('workType', e.target.value)}
-          />
+          <div>
+            <label className="text-sm text-gray-300 font-medium block mb-1">סוג עבודה</label>
+            <input
+              list="lead-form-worktypes"
+              id="workType"
+              placeholder="שיפוץ, בניה חדשה..."
+              value={form.workType}
+              onChange={(e) => set('workType', e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <datalist id="lead-form-worktypes">
+              {lists.workTypes.map((w) => <option key={w} value={w} />)}
+            </datalist>
+          </div>
           <Input
             id="estimatedSize"
             label='גודל משוער (מ"ר)'

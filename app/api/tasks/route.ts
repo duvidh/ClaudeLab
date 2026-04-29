@@ -6,11 +6,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
+    const taskType = searchParams.get('taskType')
 
     const tasks = await prisma.task.findMany({
       where: {
         ...(status ? { status } : {}),
         ...(priority ? { priority } : {}),
+        ...(taskType ? { taskType } : {}),
       },
       include: {
         lead: { select: { id: true, fullName: true } },

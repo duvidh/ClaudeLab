@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     const [leads, clients, projects] = await Promise.all([
       prisma.lead.findMany({
         where: {
+          deletedAt: null as any,
           OR: [
             { fullName: { contains: q } },
             { primaryPhone: { contains: q } },
@@ -21,6 +22,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.client.findMany({
         where: {
+          deletedAt: null as any,
           OR: [
             { name: { contains: q } },
             { company: { contains: q } },

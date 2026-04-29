@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
           ],
         } : {}),
       },
-      orderBy: { name: 'asc' },
+      orderBy: [{ isActive: 'desc' }, { name: 'asc' }],
     })
     return NextResponse.json({ data: items })
   } catch (error) {

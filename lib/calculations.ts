@@ -7,9 +7,10 @@ export type QuoteItemInput = {
   laborCost: number
 }
 
+// dim1 in meters, dim2 in centimeters → converts to m² before multiplying by unitPrice
 export function calcLinePrice(item: QuoteItemInput): number {
   const d1 = item.dimension1 ?? 1
-  const d2 = item.dimension2 ?? 1
+  const d2 = item.dimension2 != null ? item.dimension2 / 100 : 1
   return d1 * d2 * item.unitPrice
 }
 

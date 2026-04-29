@@ -29,13 +29,23 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'table' | 'kanban'>('table')
   const [statusFilter, setStatusFilter] = useState('')
+  const [repFilter, setRepFilter] = useState('')
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const [employees, setEmployees] = useState<{ id: string; name: string }[]>([])
+
+  useEffect(() => {
+    fetch('/api/employees?status=ACTIVE')
+      .then((r) => r.json())
+      .then((j) => setEmployees(j.data ?? []))
+      .catch(() => {})
+  }, [])
 
   const fetchLeads = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (statusFilter) params.set('status', statusFilter)
+    if (repFilter) params.set('rep', repFilter)
     if (search) params.set('search', search)
     try {
       const res = await fetch(`/api/leads?${params}`)
@@ -44,7 +54,7 @@ export default function LeadsPage() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, search])
+  }, [statusFilter, repFilter, search])
 
   useEffect(() => {
     const timer = setTimeout(fetchLeads, 300)
@@ -99,6 +109,19 @@ export default function LeadsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
           />
         </div>
+
+        {employees.length > 0 && (
+          <div className="w-40">
+            <Select
+              options={[
+                { value: '', label: 'כל הנציגים' },
+                ...employees.map((e) => ({ value: e.name, label: e.name })),
+              ]}
+              value={repFilter}
+              onChange={(e) => setRepFilter(e.target.value)}
+            />
+          </div>
+        )}
 
         <button
           onClick={fetchLeads}

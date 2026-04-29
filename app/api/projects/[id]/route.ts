@@ -32,7 +32,12 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await req.json()
-    const project = await prisma.project.update({ where: { id }, data: body })
+    const data: Record<string, unknown> = { ...body }
+    // Auto-set actualEndDate when project is marked COMPLETED
+    if (data.status === 'COMPLETED' && !data.actualEndDate) {
+      data.actualEndDate = new Date()
+    }
+    const project = await prisma.project.update({ where: { id }, data })
     return NextResponse.json({ data: project })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה בעדכון הפרויקט' }, { status: 500 })

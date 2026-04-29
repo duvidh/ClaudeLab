@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw, Package, Pencil, Check, X, Power } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Plus, RefreshCw, Package, Pencil, Check, X, Power, Download, Upload } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -14,8 +15,13 @@ export default function CatalogPage() {
   const [items, setItems] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ success: number; error: number } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editRow, setEditRow] = useState<Partial<CatalogItem>>({})
 
@@ -37,6 +43,16 @@ export default function CatalogPage() {
     const t = setTimeout(fetchItems, 300)
     return () => clearTimeout(t)
   }, [fetchItems])
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(items.map((i) => i.category).filter(Boolean))) as string[]
+    return cats.sort()
+  }, [items])
+
+  const displayedItems = useMemo(() => {
+    if (!categoryFilter) return items
+    return items.filter((i) => i.category === categoryFilter)
+  }, [items, categoryFilter])
 
   async function handleCreate(data: Record<string, unknown>) {
     const res = await fetch('/api/catalog', {
@@ -72,20 +88,105 @@ export default function CatalogPage() {
     }
   }
 
+  function parseCSVLine(line: string): string[] {
+    const result: string[] = []
+    let inQuotes = false
+    let current = ''
+    for (const char of line) {
+      if (char === '"') { inQuotes = !inQuotes }
+      else if (char === ',' && !inQuotes) { result.push(current.trim()); current = '' }
+      else { current += char }
+    }
+    result.push(current.trim())
+    return result
+  }
+
+  async function handleImportCSV(e: React.FormEvent) {
+    e.preventDefault()
+    if (!importFile) return
+    setImporting(true)
+    setImportResult(null)
+    try {
+      const text = await importFile.text()
+      const lines = text.replace(/^﻿/, '').split('\n').filter((l) => l.trim())
+      const dataLines = lines.slice(1)
+      let success = 0
+      let error = 0
+      for (const line of dataLines) {
+        const [sku, name, category, unit, salePrice, selfCost, supplier, stock] = parseCSVLine(line)
+        if (!sku || !name) { error++; continue }
+        const res = await fetch('/api/catalog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sku,
+            name,
+            category: category || undefined,
+            unit: unit || undefined,
+            salePrice: parseFloat(salePrice) || 0,
+            selfCost: parseFloat(selfCost) || 0,
+            supplier: supplier || undefined,
+            stock: stock ? parseFloat(stock) : undefined,
+          }),
+        })
+        if (res.ok) success++
+        else error++
+      }
+      setImportResult({ success, error })
+      if (success > 0) {
+        await fetchItems()
+        if (error === 0) setTimeout(() => { setImportOpen(false); setImportResult(null); setImportFile(null) }, 1500)
+      }
+    } finally { setImporting(false) }
+  }
+
+  function exportCSV() {
+    const headers = ['מק"ט', 'שם פריט', 'קטגוריה', 'יחידה', 'מחיר מכירה', 'עלות עצמית', 'ספק', 'מלאי', 'סטטוס']
+    const rows = displayedItems.map((i) => [
+      i.sku, i.name, i.category ?? '', i.unit ?? '',
+      i.salePrice, i.selfCost, i.supplier ?? '', i.stock ?? '', i.isActive ? 'פעיל' : 'לא פעיל',
+    ])
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'catalog.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const categoryOptions = [
+    { value: '', label: 'כל הקטגוריות' },
+    ...categories.map((c) => ({ value: c, label: c })),
+  ]
+
   return (
     <div>
       <PageHeader
         title="קטלוג חומרים"
-        subtitle={`${items.length} פריטים`}
+        subtitle={`${displayedItems.length} פריטים${categoryFilter ? ` · ${categoryFilter}` : ''}`}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus size={16} />
-            פריט חדש
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => { setImportOpen(true); setImportResult(null); setImportFile(null) }}>
+              <Upload size={16} />
+              ייבוא CSV
+            </Button>
+            <Button variant="secondary" onClick={exportCSV}>
+              <Download size={16} />
+              ייצוא CSV
+            </Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus size={16} />
+              פריט חדש
+            </Button>
+          </div>
         }
       />
 
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
         <div className="flex-1 min-w-[200px]">
           <input
             type="text"
@@ -95,6 +196,11 @@ export default function CatalogPage() {
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        {categories.length > 0 && (
+          <div className="w-44">
+            <Select options={categoryOptions} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} />
+          </div>
+        )}
         <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
           <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} className="accent-blue-500" />
           הצג לא פעילים
@@ -108,7 +214,7 @@ export default function CatalogPage() {
         <div className="flex items-center justify-center py-16">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : items.length === 0 ? (
+      ) : displayedItems.length === 0 ? (
         <EmptyState
           icon={Package}
           title="קטלוג ריק"
@@ -134,7 +240,7 @@ export default function CatalogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {items.map((item) => {
+              {displayedItems.map((item) => {
                 const isEditing = editingId === item.id
                 const profitPct = item.salePrice > 0
                   ? ((item.salePrice - item.selfCost) / item.salePrice * 100)
@@ -216,33 +322,116 @@ export default function CatalogPage() {
       )}
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="פריט חדש בקטלוג" size="md">
-        <CatalogItemForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
+        <CatalogItemForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} existingCategories={categories} />
+      </Modal>
+
+      <Modal open={importOpen} onClose={() => setImportOpen(false)} title="ייבוא CSV לקטלוג" size="sm">
+        <form onSubmit={handleImportCSV} className="space-y-4">
+          <p className="text-xs text-gray-400">
+            העלה קובץ CSV בפורמט הייצוא: מק&ldquo;ט, שם פריט, קטגוריה, יחידה, מחיר מכירה, עלות עצמית, ספק, מלאי
+          </p>
+          <div>
+            <label className="text-sm text-gray-300 font-medium block mb-1">קובץ CSV *</label>
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+              className="w-full text-sm text-gray-300 file:ml-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+            />
+          </div>
+          {importResult && (
+            <div className={`text-sm rounded-lg px-3 py-2 ${importResult.error > 0 ? 'bg-yellow-500/10 text-yellow-300' : 'bg-green-500/10 text-green-300'}`}>
+              יובאו בהצלחה: {importResult.success} · שגיאות: {importResult.error}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button type="submit" loading={importing} disabled={!importFile} className="flex-1">
+              ייבא פריטים
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setImportOpen(false)}>ביטול</Button>
+          </div>
+        </form>
       </Modal>
     </div>
   )
 }
 
-function CatalogItemForm({ onSubmit, onCancel }: { onSubmit: (d: Record<string, unknown>) => Promise<void>; onCancel: () => void }) {
+function CatalogItemForm({
+  onSubmit,
+  onCancel,
+  existingCategories,
+}: {
+  onSubmit: (d: Record<string, unknown>) => Promise<void>
+  onCancel: () => void
+  existingCategories: string[]
+}) {
   const [form, setForm] = useState({ sku: '', name: '', category: '', unit: '', salePrice: '', selfCost: '', supplier: '', stock: '' })
   const [loading, setLoading] = useState(false)
 
   function set(k: keyof typeof form, v: string) { setForm((p) => ({ ...p, [k]: v })) }
+
+  function generateSku() {
+    const prefix = form.category
+      ? form.category.replace(/\s+/g, '').slice(0, 3).toUpperCase()
+      : 'SKU'
+    const suffix = Date.now().toString().slice(-4)
+    set('sku', `${prefix}-${suffix}`)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.sku || !form.name) return
     setLoading(true)
     try {
-      await onSubmit({ ...form, salePrice: parseFloat(form.salePrice) || 0, selfCost: parseFloat(form.selfCost) || 0, stock: form.stock ? parseFloat(form.stock) : undefined })
+      await onSubmit({
+        ...form,
+        salePrice: parseFloat(form.salePrice) || 0,
+        selfCost: parseFloat(form.selfCost) || 0,
+        stock: form.stock ? parseFloat(form.stock) : undefined,
+      })
     } finally { setLoading(false) }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
-        <Input label='מק"ט *' placeholder="SKU-001" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
+        {/* SKU with generate button */}
+        <div>
+          <label className="text-sm text-gray-300 font-medium block mb-1">מק"ט *</label>
+          <div className="flex gap-1">
+            <input
+              value={form.sku}
+              onChange={(e) => set('sku', e.target.value)}
+              placeholder="SKU-001"
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={generateSku}
+              className="px-2 py-2 text-xs text-gray-400 hover:text-blue-400 bg-gray-800 border border-gray-700 rounded-lg transition-colors"
+              title="צור מק״ט אוטומטי"
+            >
+              ✨
+            </button>
+          </div>
+        </div>
         <Input label="שם פריט *" placeholder="שם החומר" value={form.name} onChange={(e) => set('name', e.target.value)} />
-        <Input label="קטגוריה" placeholder="ריצוף, גבס..." value={form.category} onChange={(e) => set('category', e.target.value)} />
+
+        {/* Category with datalist */}
+        <div>
+          <label className="text-sm text-gray-300 font-medium block mb-1">קטגוריה</label>
+          <input
+            list="catalog-categories"
+            value={form.category}
+            onChange={(e) => set('category', e.target.value)}
+            placeholder="ריצוף, גבס..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <datalist id="catalog-categories">
+            {existingCategories.map((c) => <option key={c} value={c} />)}
+          </datalist>
+        </div>
+
         <Input label="יחידת מידה" placeholder='מ"ר, יחידה...' value={form.unit} onChange={(e) => set('unit', e.target.value)} />
         <Input label="מחיר מכירה (₪)" type="number" placeholder="100" value={form.salePrice} onChange={(e) => set('salePrice', e.target.value)} />
         <Input label="עלות עצמית (₪)" type="number" placeholder="70" value={form.selfCost} onChange={(e) => set('selfCost', e.target.value)} />

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import {
   Phone, Mail, MapPin, Building2, CreditCard,
   FolderKanban, Plus, FileText, User, Calendar, Trash2, ChevronLeft,
+  Paperclip, Upload, Download, File as FileIcon,
 } from 'lucide-react'
 import { Tabs } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
@@ -21,7 +22,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate, formatCurrency, timeAgo } from '@/lib/utils'
 import type { ClientFinancials } from '@/lib/calculations'
-import type { Client, Project, Quote, Invoice, Task, Payment, Milestone, Meeting } from '@/types'
+import type { Client, Project, Quote, Invoice, Task, Payment, Milestone, Meeting, ClientFile } from '@/types'
 
 type ProjectWithPayments = Project & { payments: Payment[]; milestones: Milestone[] }
 type QuoteWithProject = Quote & { project: Project | null }
@@ -32,6 +33,7 @@ type ClientWithRelations = Client & {
   invoices: Invoice[]
   tasks: Task[]
   meetings: Meeting[]
+  files: ClientFile[]
   financials: ClientFinancials
 }
 
@@ -42,6 +44,7 @@ const TABS = [
   { id: 'payments', label: 'תשלומים' },
   { id: 'tasks', label: 'משימות' },
   { id: 'meetings', label: 'פגישות' },
+  { id: 'documents', label: 'מסמכים' },
 ]
 
 interface ClientDetailProps {
@@ -50,7 +53,15 @@ interface ClientDetailProps {
 
 export function ClientDetail({ client: initialClient }: ClientDetailProps) {
   const [client, setClient] = useState(initialClient)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [files, setFiles] = useState<ClientFile[]>(initialClient.files)
+  const [activeTab, setActiveTab] = useState(() => {
+    try { return localStorage.getItem(`tab-client-${initialClient.id}`) ?? 'overview' } catch { return 'overview' }
+  })
+
+  function handleTabChange(tab: string) {
+    setActiveTab(tab)
+    try { localStorage.setItem(`tab-client-${initialClient.id}`, tab) } catch {}
+  }
   const [editOpen, setEditOpen] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [newProjectOpen, setNewProjectOpen] = useState(false)
@@ -66,6 +77,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
       : t.id === 'quotes' ? client.quotes.length
       : t.id === 'tasks' ? client.tasks.length
       : t.id === 'meetings' ? client.meetings.length
+      : t.id === 'documents' ? client.files.length
       : undefined,
   }))
 
@@ -186,7 +198,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
         <FinancialSummary financials={client.financials} />
       </div>
 
-      <Tabs tabs={tabsWithCounts} activeTab={activeTab} onChange={setActiveTab} />
+      <Tabs tabs={tabsWithCounts} activeTab={activeTab} onChange={handleTabChange} />
 
       {/* Overview tab */}
       {activeTab === 'overview' && (
@@ -195,11 +207,14 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
             <h3 className="text-sm font-semibold text-gray-300 mb-3">פרטי התקשרות</h3>
             <div className="space-y-2.5">
               {phones.map((p, i) => (
-                <InfoRow key={i} icon={Phone} label={`טלפון ${i + 1}`} value={p} />
+                <InfoRow key={i} icon={Phone} label={`טלפון ${i + 1}`} value={p} linkType="phone" />
               ))}
-              {client.email && <InfoRow icon={Mail} label="אימייל" value={client.email} />}
-              {client.address && <InfoRow icon={MapPin} label="כתובת" value={client.address} />}
+              {client.email && <InfoRow icon={Mail} label="אימייל" value={client.email} linkType="email" />}
+              {client.address && <InfoRow icon={MapPin} label="כתובת הנכס" value={client.address} />}
               {client.city && <InfoRow icon={MapPin} label="עיר" value={client.city} />}
+              {client.mailingAddress && (
+                <InfoRow icon={MapPin} label="כתובת למשלוח" value={client.mailingAddress} />
+              )}
             </div>
           </Card>
           <Card>
@@ -412,6 +427,16 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
         <ClientMeetingsTab clientId={client.id} initialMeetings={client.meetings} />
       )}
 
+      {/* Documents tab */}
+      {activeTab === 'documents' && (
+        <ClientFilesTab
+          clientId={client.id}
+          files={files}
+          onAdd={(f) => setFiles((prev) => [f, ...prev])}
+          onDelete={(id) => setFiles((prev) => prev.filter((f) => f.id !== id))}
+        />
+      )}
+
       {/* Edit modal */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="עריכת לקוח" size="lg">
         <ClientForm initialData={client} onSubmit={handleUpdate} onCancel={() => setEditOpen(false)} />
@@ -419,7 +444,12 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
 
       {/* New Project modal */}
       <Modal open={newProjectOpen} onClose={() => setNewProjectOpen(false)} title="פרויקט חדש" size="lg">
-        <ProjectForm preselectedClientId={client.id} onSubmit={handleNewProject} onCancel={() => setNewProjectOpen(false)} />
+        <ProjectForm
+          preselectedClientId={client.id}
+          initialData={{ address: [client.address, client.city].filter(Boolean).join(', ') || undefined }}
+          onSubmit={handleNewProject}
+          onCancel={() => setNewProjectOpen(false)}
+        />
       </Modal>
 
       {/* New Quote modal */}
@@ -445,13 +475,18 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
   )
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: typeof Phone; label: string; value: string }) {
+function InfoRow({ icon: Icon, label, value, linkType }: { icon: typeof Phone; label: string; value: string; linkType?: 'phone' | 'email' }) {
+  const href = linkType === 'phone' ? `tel:${value}` : linkType === 'email' ? `mailto:${value}` : undefined
   return (
     <div className="flex items-start gap-2">
       <Icon size={14} className="text-gray-500 mt-0.5 shrink-0" />
       <div>
         <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-sm text-gray-200">{value}</p>
+        {href ? (
+          <a href={href} className="text-sm text-blue-400 hover:text-blue-300 transition-colors">{value}</a>
+        ) : (
+          <p className="text-sm text-gray-200">{value}</p>
+        )}
       </div>
     </div>
   )
@@ -563,13 +598,23 @@ const MEETING_TYPE_OPTIONS = [
   { value: 'ביקור', label: 'ביקור באתר' },
 ]
 
+const PRIORITY_OPTIONS = [
+  { value: 'LOW', label: 'נמוכה' },
+  { value: 'MEDIUM', label: 'בינונית' },
+  { value: 'HIGH', label: 'גבוהה' },
+]
+
 function ClientMeetingsTab({ clientId, initialMeetings }: { clientId: string; initialMeetings: Meeting[] }) {
   const [meetings, setMeetings] = useState(initialMeetings)
   const [addOpen, setAddOpen] = useState(false)
+  const [taskOpen, setTaskOpen] = useState(false)
   const [form, setForm] = useState({ type: 'פגישה', date: '', summary: '' })
+  const [taskForm, setTaskForm] = useState({ title: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' })
   const [loading, setLoading] = useState(false)
+  const [taskLoading, setTaskLoading] = useState(false)
 
   function setF(k: keyof typeof form, v: string) { setForm((p) => ({ ...p, [k]: v })) }
+  function setTF(k: keyof typeof taskForm, v: string) { setTaskForm((p) => ({ ...p, [k]: v })) }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -599,9 +644,36 @@ function ClientMeetingsTab({ clientId, initialMeetings }: { clientId: string; in
     if (res.ok) setMeetings((prev) => prev.filter((m) => m.id !== id))
   }
 
+  async function handleAddTask(e: React.FormEvent) {
+    e.preventDefault()
+    if (!taskForm.title) return
+    setTaskLoading(true)
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: taskForm.title,
+          dueDate: taskForm.dueDate ? new Date(taskForm.dueDate) : undefined,
+          priority: taskForm.priority,
+          assignedTo: taskForm.assignedTo || undefined,
+          clientId,
+        }),
+      })
+      if (res.ok) {
+        setTaskOpen(false)
+        setTaskForm({ title: '', dueDate: '', priority: 'MEDIUM', assignedTo: '' })
+      }
+    } finally { setTaskLoading(false) }
+  }
+
   return (
     <div>
-      <div className="flex justify-end mb-3">
+      <div className="flex justify-end gap-2 mb-3">
+        <Button size="sm" variant="secondary" onClick={() => setTaskOpen(true)}>
+          <Plus size={14} />
+          צור משימה
+        </Button>
         <Button size="sm" onClick={() => setAddOpen(true)}>
           <Plus size={14} />
           הוסף פגישה/שיחה
@@ -648,6 +720,161 @@ function ClientMeetingsTab({ clientId, initialMeetings }: { clientId: string; in
           <div className="flex gap-2 pt-1">
             <Button type="submit" loading={loading} disabled={!form.date} className="flex-1">שמור</Button>
             <Button type="button" variant="secondary" onClick={() => setAddOpen(false)}>ביטול</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={taskOpen} onClose={() => setTaskOpen(false)} title="משימה חדשה" size="sm">
+        <form onSubmit={handleAddTask} className="space-y-3">
+          <Input label="כותרת *" placeholder="תאר את המשימה..." value={taskForm.title} onChange={(e) => setTF('title', e.target.value)} />
+          <Input label="תאריך יעד" type="datetime-local" value={taskForm.dueDate} onChange={(e) => setTF('dueDate', e.target.value)} />
+          <Select label="עדיפות" options={PRIORITY_OPTIONS} value={taskForm.priority} onChange={(e) => setTF('priority', e.target.value)} />
+          <Input label="הקצאה" placeholder="שם נציג..." value={taskForm.assignedTo} onChange={(e) => setTF('assignedTo', e.target.value)} />
+          <div className="flex gap-2 pt-1">
+            <Button type="submit" loading={taskLoading} disabled={!taskForm.title} className="flex-1">צור משימה</Button>
+            <Button type="button" variant="secondary" onClick={() => setTaskOpen(false)}>ביטול</Button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  )
+}
+
+const FILE_TYPE_OPTIONS = [
+  { value: 'contract', label: 'חוזה' },
+  { value: 'permit', label: 'היתר בניה' },
+  { value: 'plan', label: 'תכנית' },
+  { value: 'photo', label: 'תמונה' },
+  { value: 'other', label: 'אחר' },
+]
+const FILE_TYPE_LABELS: Record<string, string> = {
+  contract: 'חוזה', permit: 'היתר', plan: 'תכנית', photo: 'תמונה', other: 'אחר',
+}
+const FILE_TYPE_COLORS: Record<string, string> = {
+  contract: 'bg-blue-500/20 text-blue-300',
+  permit: 'bg-yellow-500/20 text-yellow-300',
+  plan: 'bg-purple-500/20 text-purple-300',
+  photo: 'bg-green-500/20 text-green-300',
+  other: 'bg-gray-500/20 text-gray-400',
+}
+
+function ClientFilesTab({
+  clientId,
+  files,
+  onAdd,
+  onDelete,
+}: {
+  clientId: string
+  files: ClientFile[]
+  onAdd: (f: ClientFile) => void
+  onDelete: (id: string) => void
+}) {
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [fileType, setFileType] = useState('other')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function handleUpload(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedFile) return
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', selectedFile)
+      fd.append('type', fileType)
+      const res = await fetch(`/api/clients/${clientId}/files`, { method: 'POST', body: fd })
+      if (res.ok) {
+        const json = await res.json()
+        onAdd(json.data)
+        setUploadOpen(false)
+        setSelectedFile(null)
+        setFileType('other')
+      }
+    } finally { setUploading(false) }
+  }
+
+  async function handleDelete(fileId: string) {
+    setDeletingId(fileId)
+    try {
+      const res = await fetch(`/api/clients/${clientId}/files`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId }),
+      })
+      if (res.ok) onDelete(fileId)
+    } finally { setDeletingId(null) }
+  }
+
+  return (
+    <div>
+      <div className="flex justify-end mb-3">
+        <Button size="sm" onClick={() => setUploadOpen(true)}>
+          <Upload size={14} />
+          העלה מסמך
+        </Button>
+      </div>
+
+      {files.length === 0 ? (
+        <EmptyState icon={Paperclip} title="אין מסמכים" description="העלה חוזים, היתרים, תכניות ותמונות הקשורים ללקוח" action={<Button size="sm" onClick={() => setUploadOpen(true)}><Upload size={14} />העלה מסמך</Button>} />
+      ) : (
+        <div className="space-y-2">
+          {files.map((file) => (
+            <Card key={file.id}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileIcon size={18} className="text-gray-400 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-white">{file.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatDate(file.createdAt)}</p>
+                  </div>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${FILE_TYPE_COLORS[file.fileType ?? ''] ?? FILE_TYPE_COLORS.other}`}>
+                    {FILE_TYPE_LABELS[file.fileType ?? ''] ?? file.fileType ?? 'אחר'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <a
+                    href={file.url}
+                    download={file.name}
+                    className="p-1.5 text-gray-400 hover:text-blue-400 transition-colors"
+                    title="הורד"
+                  >
+                    <Download size={14} />
+                  </a>
+                  <button
+                    onClick={() => handleDelete(file.id)}
+                    disabled={deletingId === file.id}
+                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                    title="מחק"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="העלאת מסמך" size="sm">
+        <form onSubmit={handleUpload} className="space-y-3">
+          <div>
+            <label className="text-sm text-gray-300 font-medium block mb-1">קובץ *</label>
+            <input
+              type="file"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+              className="w-full text-sm text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+            />
+          </div>
+          <Select
+            label="סוג מסמך"
+            options={FILE_TYPE_OPTIONS}
+            value={fileType}
+            onChange={(e) => setFileType(e.target.value)}
+          />
+          <div className="flex gap-2 pt-1">
+            <Button type="submit" loading={uploading} disabled={!selectedFile} className="flex-1">העלה</Button>
+            <Button type="button" variant="secondary" onClick={() => setUploadOpen(false)}>ביטול</Button>
           </div>
         </form>
       </Modal>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Client } from '@/types'
 
 const CATEGORY_OPTIONS = [
@@ -29,6 +30,7 @@ type ClientFormData = {
   company: string
   idNumber: string
   address: string
+  mailingAddress: string
   city: string
   email: string
   phones: string[]
@@ -43,6 +45,7 @@ const toFormData = (c?: Partial<Client>): ClientFormData => ({
   company: c?.company ?? '',
   idNumber: c?.idNumber ?? '',
   address: c?.address ?? '',
+  mailingAddress: c?.mailingAddress ?? '',
   city: c?.city ?? '',
   email: c?.email ?? '',
   phones: (() => {
@@ -61,7 +64,9 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps) {
+  const lists = useSettingsLists()
   const [form, setForm] = useState<ClientFormData>(toFormData(initialData))
+  const [showMailingAddress, setShowMailingAddress] = useState(!!initialData?.mailingAddress)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof ClientFormData, string>>>({})
 
@@ -147,20 +152,56 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
           />
-          <Input
-            id="address"
-            label="כתובת"
-            placeholder="רחוב הרצל 1"
-            value={form.address}
-            onChange={(e) => set('address', e.target.value)}
-          />
-          <Input
-            id="city"
-            label="עיר"
-            placeholder="תל אביב"
-            value={form.city}
-            onChange={(e) => set('city', e.target.value)}
-          />
+          <div className="col-span-2 space-y-2">
+            <Input
+              id="address"
+              label="כתובת הנכס"
+              placeholder="רחוב הרצל 1"
+              value={form.address}
+              onChange={(e) => set('address', e.target.value)}
+            />
+            {!showMailingAddress && (
+              <button
+                type="button"
+                onClick={() => setShowMailingAddress(true)}
+                className="text-xs text-blue-400 hover:text-blue-300"
+              >
+                + כתובת למשלוח שונה
+              </button>
+            )}
+            {showMailingAddress && (
+              <div>
+                <Input
+                  id="mailingAddress"
+                  label="כתובת למשלוח"
+                  placeholder="כתובת אחרת לדואר / חשבוניות"
+                  value={form.mailingAddress}
+                  onChange={(e) => set('mailingAddress', e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setShowMailingAddress(false); set('mailingAddress', '') }}
+                  className="text-xs text-gray-500 hover:text-red-400 mt-1"
+                >
+                  הסר כתובת למשלוח
+                </button>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="text-sm text-gray-300 font-medium block mb-1">עיר</label>
+            <input
+              list="client-form-cities"
+              id="city"
+              placeholder="תל אביב"
+              value={form.city}
+              onChange={(e) => set('city', e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <datalist id="client-form-cities">
+              {lists.cities.map((c) => <option key={c} value={c} />)}
+            </datalist>
+          </div>
           <Select
             id="category"
             label="קטגוריה"
@@ -178,7 +219,10 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
           <Select
             id="paymentMethod"
             label="שיטת תשלום"
-            options={PAYMENT_METHOD_OPTIONS}
+            options={[
+              { value: '', label: 'בחר שיטת תשלום' },
+              ...lists.paymentMethods.map((m) => ({ value: m, label: m })),
+            ]}
             value={form.paymentMethod}
             onChange={(e) => set('paymentMethod', e.target.value)}
           />

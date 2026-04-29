@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronRight, Trash2, FolderPlus, Copy } from 'lucide-react'
+import { ChevronRight, Trash2, FolderPlus, Copy, Send, CheckCircle, XCircle } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
@@ -17,7 +17,10 @@ import { PDFExportButton } from '@/components/quotes/PDFExportButton'
 import { formatDate } from '@/lib/utils'
 
 function calcTotal(items: { unitPrice: number; dimension1: number | null; dimension2: number | null }[], discount: number) {
-  const sub = items.reduce((s: number, i: any) => s + (i.dimension1 ?? 1) * (i.dimension2 ?? 1) * i.unitPrice, 0)
+  const sub = items.reduce((s: number, i: any) => {
+    const d2 = i.dimension2 != null ? i.dimension2 / 100 : 1
+    return s + (i.dimension1 ?? 1) * d2 * i.unitPrice
+  }, 0)
   return Math.max(0, sub - discount) * 1.17
 }
 
@@ -40,11 +43,15 @@ export default function QuoteDetailPage() {
   const [creatingProject, setCreatingProject] = useState(false)
   const [projectName, setProjectName] = useState('')
   const [duplicating, setDuplicating] = useState(false)
+  const [notes, setNotes] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [sendingQuote, setSendingQuote] = useState(false)
+  const [actionMsg, setActionMsg] = useState('')
 
   useEffect(() => {
     fetch(`/api/quotes/${id}`)
       .then((r) => r.json())
-      .then((j) => { setQuote(j.data); setLoading(false) })
+      .then((j) => { setQuote(j.data); setNotes(j.data?.notes ?? ''); setLoading(false) })
   }, [id])
 
   async function updateStatus(status: string) {
@@ -59,6 +66,53 @@ export default function QuoteDetailPage() {
     }
   }
 
+  async function handleSend() {
+    setSendingQuote(true)
+    try {
+      const updates: Record<string, unknown> = { status: 'SENT' }
+      if (!quote.validUntil) {
+        const d = new Date()
+        d.setDate(d.getDate() + 30)
+        updates.validUntil = d
+      }
+      const res = await fetch(`/api/quotes/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setQuote((prev: any) => ({ ...prev, status: json.data.status, validUntil: json.data.validUntil }))
+        setActionMsg('ההצעה סומנה כנשלחה')
+        setTimeout(() => setActionMsg(''), 3000)
+      }
+    } finally { setSendingQuote(false) }
+  }
+
+  async function handleApprove() {
+    const res = await fetch(`/api/quotes/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'APPROVED' }),
+    })
+    if (res.ok) {
+      setQuote((prev: any) => ({ ...prev, status: 'APPROVED' }))
+      setActionMsg('ההצעה אושרה!')
+      setTimeout(() => setActionMsg(''), 3000)
+    }
+  }
+
+  async function handleReject() {
+    const res = await fetch(`/api/quotes/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'REJECTED' }),
+    })
+    if (res.ok) {
+      setQuote((prev: any) => ({ ...prev, status: 'REJECTED' }))
+    }
+  }
+
   async function handleDuplicate() {
     setDuplicating(true)
     try {
@@ -68,6 +122,18 @@ export default function QuoteDetailPage() {
         router.push(`/quotes/${json.data.id}`)
       }
     } finally { setDuplicating(false) }
+  }
+
+  async function saveNotes() {
+    if (savingNotes) return
+    setSavingNotes(true)
+    try {
+      await fetch(`/api/quotes/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      })
+    } finally { setSavingNotes(false) }
   }
 
   async function handleCreateProject(e: React.FormEvent) {
@@ -107,13 +173,38 @@ export default function QuoteDetailPage() {
         <Link href="/quotes" className="hover:text-white transition-colors">הצעות מחיר</Link>
         <ChevronRight size={14} />
         <span className="text-gray-300">{quote.quoteNumber}</span>
+        {actionMsg && (
+          <span className="ms-4 text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full animate-pulse">
+            {actionMsg}
+          </span>
+        )}
       </nav>
 
       <PageHeader
         title={`הצעת מחיר ${quote.quoteNumber}`}
         subtitle={`לקוח: ${quote.client?.name} ${quote.project ? `· פרויקט: ${quote.project.name}` : ''}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Primary workflow actions */}
+            {quote.status === 'DRAFT' && (
+              <Button size="sm" onClick={handleSend} loading={sendingQuote} className="gap-1.5 bg-blue-600 hover:bg-blue-500">
+                <Send size={13} />
+                שלח הצעה
+              </Button>
+            )}
+            {quote.status === 'SENT' && (
+              <>
+                <Button size="sm" onClick={handleApprove} className="gap-1.5 bg-green-600 hover:bg-green-500">
+                  <CheckCircle size={13} />
+                  אשר הצעה
+                </Button>
+                <Button size="sm" variant="secondary" onClick={handleReject} className="gap-1.5">
+                  <XCircle size={13} />
+                  דחה
+                </Button>
+              </>
+            )}
+            {/* Status dropdown for manual override */}
             <div className="w-36">
               <Select
                 options={STATUS_OPTIONS}
@@ -121,10 +212,10 @@ export default function QuoteDetailPage() {
                 onChange={(e) => updateStatus(e.target.value)}
               />
             </div>
-            <PDFExportButton quote={quote} />
+            <PDFExportButton quote={quote} clientId={quote.clientId} />
             <Button variant="secondary" size="sm" onClick={handleDuplicate} loading={duplicating}>
               <Copy size={14} />
-              שכפל כגרסה חדשה
+              שכפל
             </Button>
             {quote.status === 'APPROVED' && !quote.projectId && (
               <Button size="sm" onClick={() => { setProjectName(`פרויקט - ${quote.client?.name}`); setProjectOpen(true) }}>
@@ -170,6 +261,22 @@ export default function QuoteDetailPage() {
           quoteId={quote.id}
           initialItems={quote.items ?? []}
           initialDiscount={quote.discount ?? 0}
+        />
+      </Card>
+
+      {/* Notes */}
+      <Card className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-300">הערות כלליות</h3>
+          {savingNotes && <span className="text-xs text-gray-500">שומר...</span>}
+        </div>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={saveNotes}
+          rows={3}
+          placeholder="הערות, תנאי תשלום, הגבלות..."
+          className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </Card>
 

@@ -1,9 +1,9 @@
 // Import and re-export Prisma types
 import type {
-  Lead,
+  Lead as PrismaLead,
   LeadNote,
   LeadFile,
-  Client,
+  Client as PrismaClient,
   ClientFile,
   Meeting,
   Project,
@@ -18,11 +18,14 @@ import type {
   Notification,
 } from '@prisma/client'
 
+// Extend Client with fields added via migration (regenerated after dev server restart)
+export type Client = PrismaClient & { mailingAddress?: string | null; deletedAt?: Date | null }
+// Extend Lead with deletedAt added via migration
+export type Lead = PrismaLead & { deletedAt?: Date | null }
+
 export type {
-  Lead,
   LeadNote,
   LeadFile,
-  Client,
   ClientFile,
   Meeting,
   Project,

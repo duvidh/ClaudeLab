@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
 
     const clients = await prisma.client.findMany({
       where: {
+        deletedAt: null as any,
         ...(status ? { status } : {}),
         ...(search
           ? {

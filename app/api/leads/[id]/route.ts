@@ -31,7 +31,19 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await req.json()
-    const lead = await prisma.lead.update({ where: { id }, data: body })
+
+    // Form inputs send Float fields as strings — coerce before Prisma
+    const data: Record<string, unknown> = { ...body }
+    if ('estimatedSize' in data) {
+      const v = data.estimatedSize
+      data.estimatedSize = v !== '' && v != null ? parseFloat(String(v)) : null
+    }
+    if ('budget' in data) {
+      const v = data.budget
+      data.budget = v !== '' && v != null ? parseFloat(String(v)) : null
+    }
+
+    const lead = await prisma.lead.update({ where: { id }, data })
     return NextResponse.json({ data: lead })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה בעדכון הליד' }, { status: 500 })
@@ -44,7 +56,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.lead.delete({ where: { id } })
+    await (prisma.lead as any).update({ where: { id }, data: { deletedAt: new Date() } })
     return NextResponse.json({ data: { success: true } })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה במחיקת הליד' }, { status: 500 })

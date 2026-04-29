@@ -126,11 +126,19 @@ function KPICard({
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [companyName, setCompanyName] = useState('')
 
   useEffect(() => {
     fetch('/api/dashboard')
       .then((r) => r.json())
       .then((j) => { setData(j.data); setLoading(false) })
+    try {
+      const stored = localStorage.getItem('crm-settings-company')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed.name) setCompanyName(parsed.name)
+      }
+    } catch {}
   }, [])
 
   if (loading || !data) {
@@ -146,7 +154,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">שלום, ברוך הבא</h1>
+        <h1 className="text-xl font-bold text-white">שלום{companyName ? `, ${companyName}` : ''} 👋</h1>
         <p className="text-sm text-gray-500 mt-0.5">
           {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
@@ -203,13 +211,13 @@ export default function DashboardPage() {
               contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
               labelStyle={{ color: '#d1d5db' }}
               formatter={(v: unknown) => [formatCurrency(Number(v)), 'הכנסות']}
-              cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+              cursor={{ fill: 'rgba(255,255,255,0.06)' }}
             />
             <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
               {data.revenue.monthly.map((entry, i) => (
                 <Cell
                   key={i}
-                  fill={i === data.revenue.monthly.length - 1 ? '#3b82f6' : '#374151'}
+                  fill={i === data.revenue.monthly.length - 1 ? '#3b82f6' : '#4b5563'}
                 />
               ))}
             </Bar>

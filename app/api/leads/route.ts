@@ -6,10 +6,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
     const search = searchParams.get('search')
+    const rep = searchParams.get('rep')
 
     const leads = await prisma.lead.findMany({
       where: {
+        deletedAt: null as any,
         ...(status ? { status } : {}),
+        ...(rep ? { assignedRep: rep } : {}),
         ...(search
           ? {
               OR: [

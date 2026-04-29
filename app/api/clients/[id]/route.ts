@@ -61,7 +61,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.client.delete({ where: { id } })
+    await (prisma.client as any).update({ where: { id }, data: { deletedAt: new Date() } })
     return NextResponse.json({ data: { success: true } })
   } catch (error) {
     return NextResponse.json({ error: 'שגיאה במחיקת הלקוח' }, { status: 500 })

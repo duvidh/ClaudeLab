@@ -136,8 +136,8 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
               <th className="px-2 py-2.5 text-right font-semibold w-6">#</th>
               <th className="px-2 py-2.5 text-right font-semibold min-w-[160px]">שם מוצר / מק"ט</th>
               <th className="px-2 py-2.5 text-right font-semibold">קטגוריה</th>
-              <th className="px-2 py-2.5 text-right font-semibold w-16">מידה 1</th>
-              <th className="px-2 py-2.5 text-right font-semibold w-16">מידה 2</th>
+              <th className="px-2 py-2.5 text-right font-semibold w-16" title="אורך / כמות במטרים">מ׳ (1)</th>
+              <th className="px-2 py-2.5 text-right font-semibold w-16" title="רוחב / גובה בסנטימטרים">ס״מ (2)</th>
               <th className="px-2 py-2.5 text-right font-semibold w-14">יחידה</th>
               <th className="px-2 py-2.5 text-right font-semibold w-20">מחיר יח׳</th>
               <th className="px-2 py-2.5 text-right font-semibold w-24 bg-blue-900/20">מחיר שורה</th>

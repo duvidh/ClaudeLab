@@ -13,6 +13,7 @@
     "seed": "node --import=jiti/register prisma/seed.ts"
   },
   "dependencies": {
+    "@fontsource/heebo": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.5.1",

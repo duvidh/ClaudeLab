@@ -1,13 +1,32 @@
 'use client'
 
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import type { Style } from '@react-pdf/types'
 import { calcLinePrice, calcQuoteSummary } from '@/lib/calculations'
 
-// Register a font with Hebrew support (using a system fallback path won't work in browser,
-// so we use the built-in Helvetica which handles Latin — Hebrew characters render via unicode fallback)
+// HeeboHebrew: covers Hebrew characters + ₪ (U+0590-05FF, U+20AA)
+// HeeboLatin:  covers digits, punctuation, and basic Latin (U+0000-00FF)
+Font.register({
+  family: 'HeeboHebrew',
+  fonts: [
+    { src: '/api/fonts/heebo-hebrew' },
+    { src: '/api/fonts/heebo-hebrew?bold=1', fontWeight: 700 },
+  ],
+})
+Font.register({
+  family: 'HeeboLatin',
+  fonts: [
+    { src: '/api/fonts/heebo-latin' },
+    { src: '/api/fonts/heebo-latin?bold=1', fontWeight: 700 },
+  ],
+})
+
+const H = 'HeeboHebrew'  // font alias for Hebrew text
+const L = 'HeeboLatin'   // font alias for numbers / Latin characters
+
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica',
+    fontFamily: H,
     fontSize: 10,
     padding: 40,
     backgroundColor: '#ffffff',
@@ -21,12 +40,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#3B82F6',
   },
-  companyName: { fontSize: 20, fontWeight: 'bold', color: '#1E40AF' },
-  companyInfo: { fontSize: 8, color: '#6B7280', marginTop: 2 },
-  quoteTitle: { fontSize: 18, fontWeight: 'bold', color: '#111827', textAlign: 'right' },
-  quoteMeta: { fontSize: 9, color: '#6B7280', textAlign: 'right', marginTop: 3 },
+  companyName: { fontSize: 20, fontWeight: 700, color: '#1E40AF', fontFamily: H },
+  companyInfo: { fontSize: 8, color: '#6B7280', marginTop: 2, fontFamily: H },
+  quoteTitle: { fontSize: 18, fontWeight: 700, color: '#111827', textAlign: 'right', fontFamily: H },
+  quoteMeta: { fontSize: 9, color: '#6B7280', textAlign: 'right', marginTop: 3, fontFamily: H },
   section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#111827', marginBottom: 8 },
+  sectionTitle: { fontSize: 11, fontWeight: 700, color: '#111827', marginBottom: 8, fontFamily: H },
   clientBox: {
     backgroundColor: '#F9FAFB',
     padding: 10,
@@ -35,8 +54,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   clientRow: { flexDirection: 'row-reverse', gap: 4, marginBottom: 2 },
-  clientLabel: { fontSize: 9, color: '#6B7280', width: 60 },
-  clientValue: { fontSize: 9, color: '#111827' },
+  clientLabel: { fontSize: 9, color: '#6B7280', width: 60, fontFamily: H },
+  clientValue: { fontSize: 9, color: '#111827', fontFamily: H },
   table: { width: '100%' },
   tableHeader: {
     flexDirection: 'row-reverse',
@@ -44,7 +63,7 @@ const styles = StyleSheet.create({
     padding: '6 4',
     borderRadius: 2,
   },
-  tableHeaderCell: { color: '#FFFFFF', fontSize: 8, fontWeight: 'bold', textAlign: 'right' },
+  tableHeaderCell: { color: '#FFFFFF', fontSize: 8, fontWeight: 700, textAlign: 'right', fontFamily: H },
   tableRow: {
     flexDirection: 'row-reverse',
     padding: '5 4',
@@ -52,12 +71,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F3F4F6',
   },
   tableRowAlt: { backgroundColor: '#F9FAFB' },
-  cell: { fontSize: 8, color: '#374151', textAlign: 'right' },
+  cell: { fontSize: 8, color: '#374151', textAlign: 'right', fontFamily: H },
+  cellNum: { fontSize: 8, color: '#374151', textAlign: 'right', fontFamily: L },
   colSeq: { width: '5%' },
   colName: { width: '28%' },
   colDim: { width: '14%' },
   colUnit: { width: '8%' },
-  colQty: { width: '10%' },
   colPrice: { width: '17%' },
   colLine: { width: '18%' },
   summarySection: { marginTop: 16, flexDirection: 'row-reverse', justifyContent: 'flex-start' },
@@ -75,16 +94,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
-  summaryLabel: { fontSize: 9, color: '#6B7280' },
-  summaryValue: { fontSize: 9, color: '#111827' },
+  summaryLabel: { fontSize: 9, color: '#6B7280', fontFamily: H },
+  summaryValue: { fontSize: 9, color: '#111827', fontFamily: L },
   summaryTotalRow: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     padding: '7 10',
     backgroundColor: '#1E3A5F',
   },
-  summaryTotalLabel: { fontSize: 10, color: '#FFFFFF', fontWeight: 'bold' },
-  summaryTotalValue: { fontSize: 10, color: '#FFFFFF', fontWeight: 'bold' },
+  summaryTotalLabel: { fontSize: 10, color: '#FFFFFF', fontWeight: 700, fontFamily: H },
+  summaryTotalValue: { fontSize: 10, color: '#FFFFFF', fontWeight: 700, fontFamily: L },
   footer: {
     position: 'absolute',
     bottom: 30,
@@ -96,7 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
   },
-  footerText: { fontSize: 8, color: '#9CA3AF' },
+  footerText: { fontSize: 8, color: '#9CA3AF', fontFamily: H },
   notesBox: {
     marginTop: 12,
     backgroundColor: '#FFFBEB',
@@ -105,8 +124,19 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
   },
-  notesText: { fontSize: 8, color: '#92400E' },
+  notesText: { fontSize: 8, color: '#92400E', fontFamily: H },
 })
+
+// Renders ₪ with Hebrew font + number with Latin font
+function PriceText({ amount, style }: { amount: number; style?: Style | Style[] }) {
+  const num = amount.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return (
+    <Text style={style}>
+      <Text style={{ fontFamily: H }}>{'₪'}</Text>
+      <Text style={{ fontFamily: L }}>{num}</Text>
+    </Text>
+  )
+}
 
 type QuoteItem = {
   id: string
@@ -135,14 +165,11 @@ type QuoteData = {
   items: QuoteItem[]
 }
 
-function fmt(n: number) {
-  return `₪${n.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('he-IL')
 }
 
-export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
+export function QuotePDFDocument({ quote, companyName }: { quote: QuoteData; companyName?: string }) {
   const summary = calcQuoteSummary(quote.items, quote.discount)
 
   return (
@@ -151,17 +178,23 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.companyName}>חברת הבנייה</Text>
+            <Text style={styles.companyName}>{companyName || 'חברת הבנייה'}</Text>
             <Text style={styles.companyInfo}>קבלן שיפוצים ובנייה</Text>
           </View>
           <View>
             <Text style={styles.quoteTitle}>הצעת מחיר</Text>
-            <Text style={styles.quoteMeta}>מספר: {quote.quoteNumber}</Text>
-            <Text style={styles.quoteMeta}>תאריך: {fmtDate(quote.date)}</Text>
+            <Text style={styles.quoteMeta}>
+              {'מספר: '}
+              <Text style={{ fontFamily: L }}>{quote.quoteNumber}</Text>
+            </Text>
+            <Text style={styles.quoteMeta}>{'תאריך: '}{fmtDate(quote.date)}</Text>
             {quote.validUntil && (
-              <Text style={styles.quoteMeta}>בתוקף עד: {fmtDate(quote.validUntil)}</Text>
+              <Text style={styles.quoteMeta}>{'בתוקף עד: '}{fmtDate(quote.validUntil)}</Text>
             )}
-            <Text style={styles.quoteMeta}>גרסה: v{quote.version}</Text>
+            <Text style={styles.quoteMeta}>
+              {'גרסה: '}
+              <Text style={{ fontFamily: L }}>v{quote.version}</Text>
+            </Text>
           </View>
         </View>
 
@@ -170,24 +203,24 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
           <Text style={styles.sectionTitle}>פרטי לקוח</Text>
           <View style={styles.clientBox}>
             <View style={styles.clientRow}>
-              <Text style={styles.clientLabel}>שם:</Text>
+              <Text style={styles.clientLabel}>{'שם:'}</Text>
               <Text style={styles.clientValue}>{quote.client.name}</Text>
             </View>
             {quote.client.address && (
               <View style={styles.clientRow}>
-                <Text style={styles.clientLabel}>כתובת:</Text>
+                <Text style={styles.clientLabel}>{'כתובת:'}</Text>
                 <Text style={styles.clientValue}>{quote.client.address}</Text>
               </View>
             )}
             {quote.client.email && (
               <View style={styles.clientRow}>
-                <Text style={styles.clientLabel}>אימייל:</Text>
-                <Text style={styles.clientValue}>{quote.client.email}</Text>
+                <Text style={styles.clientLabel}>{'אימייל:'}</Text>
+                <Text style={[styles.clientValue, { fontFamily: L }]}>{quote.client.email}</Text>
               </View>
             )}
             {quote.project && (
               <View style={styles.clientRow}>
-                <Text style={styles.clientLabel}>פרויקט:</Text>
+                <Text style={styles.clientLabel}>{'פרויקט:'}</Text>
                 <Text style={styles.clientValue}>{quote.project.name}</Text>
               </View>
             )}
@@ -204,7 +237,7 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
               <Text style={[styles.tableHeaderCell, styles.colDim]}>מידות</Text>
               <Text style={[styles.tableHeaderCell, styles.colUnit]}>יחידה</Text>
               <Text style={[styles.tableHeaderCell, styles.colPrice]}>מחיר יחידה</Text>
-              <Text style={[styles.tableHeaderCell, styles.colLine]}>סה"כ שורה</Text>
+              <Text style={[styles.tableHeaderCell, styles.colLine]}>{'סה"כ שורה'}</Text>
             </View>
             {quote.items.map((item, idx) => {
               const linePrice = calcLinePrice(item)
@@ -215,12 +248,12 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
                 : ''
               return (
                 <View key={item.id} style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowAlt : {}]}>
-                  <Text style={[styles.cell, styles.colSeq]}>{item.sequenceNumber}</Text>
+                  <Text style={[styles.cellNum, styles.colSeq]}>{item.sequenceNumber}</Text>
                   <Text style={[styles.cell, styles.colName]}>{item.productName}</Text>
-                  <Text style={[styles.cell, styles.colDim]}>{dimText}</Text>
+                  <Text style={[styles.cellNum, styles.colDim]}>{dimText}</Text>
                   <Text style={[styles.cell, styles.colUnit]}>{item.unit ?? ''}</Text>
-                  <Text style={[styles.cell, styles.colPrice]}>{fmt(item.unitPrice)}</Text>
-                  <Text style={[styles.cell, styles.colLine]}>{fmt(linePrice)}</Text>
+                  <PriceText amount={item.unitPrice} style={[styles.cellNum, styles.colPrice]} />
+                  <PriceText amount={linePrice} style={[styles.cellNum, styles.colLine]} />
                 </View>
               )
             })}
@@ -231,26 +264,31 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
         <View style={styles.summarySection}>
           <View style={styles.summaryBox}>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>סכום ביניים</Text>
-              <Text style={styles.summaryValue}>{fmt(summary.subtotal)}</Text>
+              <Text style={styles.summaryLabel}>{'סכום ביניים'}</Text>
+              <PriceText amount={summary.subtotal} style={styles.summaryValue} />
             </View>
             {summary.discount > 0 && (
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>הנחה</Text>
-                <Text style={[styles.summaryValue, { color: '#DC2626' }]}>-{fmt(summary.discount)}</Text>
+                <Text style={styles.summaryLabel}>{'הנחה'}</Text>
+                <Text style={[styles.summaryValue, { color: '#DC2626' }]}>
+                  <Text style={{ fontFamily: H }}>{'₪-'}</Text>
+                  <Text style={{ fontFamily: L }}>
+                    {summary.discount.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Text>
+                </Text>
               </View>
             )}
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>לפני מע"מ</Text>
-              <Text style={styles.summaryValue}>{fmt(summary.totalBeforeVAT)}</Text>
+              <Text style={styles.summaryLabel}>{'לפני מע"מ'}</Text>
+              <PriceText amount={summary.totalBeforeVAT} style={styles.summaryValue} />
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>מע"מ 17%</Text>
-              <Text style={styles.summaryValue}>{fmt(summary.vat)}</Text>
+              <Text style={styles.summaryLabel}>{'מע"מ 17%'}</Text>
+              <PriceText amount={summary.vat} style={styles.summaryValue} />
             </View>
             <View style={styles.summaryTotalRow}>
-              <Text style={styles.summaryTotalLabel}>סה"כ לתשלום</Text>
-              <Text style={styles.summaryTotalValue}>{fmt(summary.totalWithVAT)}</Text>
+              <Text style={styles.summaryTotalLabel}>{'סה"כ לתשלום'}</Text>
+              <PriceText amount={summary.totalWithVAT} style={styles.summaryTotalValue} />
             </View>
           </View>
         </View>
@@ -258,8 +296,9 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
         {/* Payment terms */}
         {quote.paymentTerms && (
           <View style={{ marginTop: 16 }}>
-            <Text style={{ fontSize: 9, color: '#6B7280' }}>
-              תנאי תשלום: <Text style={{ color: '#111827' }}>{quote.paymentTerms}</Text>
+            <Text style={{ fontSize: 9, color: '#6B7280', fontFamily: H }}>
+              {'תנאי תשלום: '}
+              <Text style={{ color: '#111827', fontFamily: H }}>{quote.paymentTerms}</Text>
             </Text>
           </View>
         )}
@@ -267,14 +306,14 @@ export function QuotePDFDocument({ quote }: { quote: QuoteData }) {
         {/* Notes */}
         {quote.notes && (
           <View style={styles.notesBox}>
-            <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#92400E', marginBottom: 3 }}>הערות:</Text>
+            <Text style={{ fontSize: 8, fontWeight: 700, color: '#92400E', marginBottom: 3, fontFamily: H }}>{'הערות:'}</Text>
             <Text style={styles.notesText}>{quote.notes}</Text>
           </View>
         )}
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>הצעת מחיר {quote.quoteNumber}</Text>
+          <Text style={styles.footerText}>{'הצעת מחיר '}{quote.quoteNumber}</Text>
           <Text style={styles.footerText} render={({ pageNumber, totalPages }) => `עמוד ${pageNumber} / ${totalPages}`} />
         </View>
       </Page>
