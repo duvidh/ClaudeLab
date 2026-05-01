@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { FloatingActionButton } from '@/components/layout/FloatingActionButton'
 
 export default function CRMLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -17,6 +18,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
           <div className="p-6">{children}</div>
         </main>
       </div>
+      <FloatingActionButton />
     </div>
   )
 }

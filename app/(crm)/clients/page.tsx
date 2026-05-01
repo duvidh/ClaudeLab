@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, RefreshCw } from 'lucide-react'
+import { Plus, RefreshCw, Download } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -11,6 +11,34 @@ import { ClientForm } from '@/components/clients/ClientForm'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { UserCheck } from 'lucide-react'
 
+type CsvClient = { name: string; company?: string | null; phones?: string | null; email?: string | null; city?: string | null; status?: string | null; joinDate?: string | null; createdAt?: string | null }
+function exportClientsCSV(clients: CsvClient[]) {
+  const headers = ['שם', 'חברה', 'טלפון', 'אימייל', 'עיר', 'סטטוס', 'תאריך הצטרפות']
+  const rows = clients.map((c) => {
+    let phone = ''
+    try { phone = JSON.parse(c.phones)?.[0] ?? '' } catch { phone = c.phones ?? '' }
+    return [
+      c.name,
+      c.company ?? '',
+      phone,
+      c.email ?? '',
+      c.city ?? '',
+      c.status === 'ACTIVE' ? 'פעיל' : 'לא פעיל',
+      new Date(c.joinDate ?? c.createdAt).toLocaleDateString('he-IL'),
+    ]
+  })
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `clients-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const STATUS_OPTIONS = [
   { value: '', label: 'כל הסטטוסים' },
   { value: 'ACTIVE', label: 'פעיל' },
@@ -18,6 +46,7 @@ const STATUS_OPTIONS = [
 ]
 
 export default function ClientsPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -61,10 +90,20 @@ export default function ClientsPage() {
         title="לקוחות"
         subtitle={`${clients.length} לקוחות`}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus size={16} />
-            לקוח חדש
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => exportClientsCSV(clients)}
+              disabled={clients.length === 0}
+              title="ייצוא CSV"
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download size={16} />
+            </button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus size={16} />
+              לקוח חדש
+            </Button>
+          </div>
         }
       />
 

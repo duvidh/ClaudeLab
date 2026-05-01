@@ -6,7 +6,6 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Tabs } from '@/components/ui/Tabs'
 
 // ─── Editable list component ───────────────────────────────────────────────
 
@@ -81,18 +80,19 @@ const DEFAULT_COMPANY = {
 }
 
 function CompanyTab() {
-  const [form, setForm] = useState(DEFAULT_COMPANY)
-  const [logo, setLogo] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
+  const [form, setForm] = useState(() => {
+    if (typeof window === 'undefined') return DEFAULT_COMPANY
     try {
       const stored = localStorage.getItem('crm-settings-company')
-      if (stored) setForm({ ...DEFAULT_COMPANY, ...JSON.parse(stored) })
-      const storedLogo = localStorage.getItem('crm-settings-logo')
-      if (storedLogo) setLogo(storedLogo)
-    } catch { /* ignore parse errors */ }
-  }, [])
+      if (stored) return { ...DEFAULT_COMPANY, ...JSON.parse(stored) }
+    } catch {}
+    return DEFAULT_COMPANY
+  })
+  const [logo, setLogo] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return localStorage.getItem('crm-settings-logo') } catch { return null }
+  })
+  const [saved, setSaved] = useState(false)
 
   function set(k: keyof typeof form, v: string) {
     setForm((p) => ({ ...p, [k]: v }))
@@ -124,11 +124,8 @@ function CompanyTab() {
         <p className="text-sm font-semibold text-gray-300 mb-4">לוגו החברה</p>
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-700 flex items-center justify-center shrink-0">
-            {logo ? (
-              <img src={logo} alt="לוגו" className="w-full h-full object-contain" />
-            ) : (
-              <HardHat size={24} className="text-blue-400" />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logo ? <img src={logo} alt="לוגו" className="w-full h-full object-contain" /> : <HardHat size={24} className="text-blue-400" />}
           </div>
           <div className="space-y-1.5">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-blue-400 hover:text-blue-300 transition-colors">
@@ -192,15 +189,15 @@ const DEFAULT_LISTS = {
 }
 
 function ListsTab() {
-  const [lists, setLists] = useState<typeof DEFAULT_LISTS>(DEFAULT_LISTS)
-  const [saved, setSaved] = useState(false)
-
-  useEffect(() => {
+  const [lists, setLists] = useState<typeof DEFAULT_LISTS>(() => {
+    if (typeof window === 'undefined') return DEFAULT_LISTS
     try {
       const stored = localStorage.getItem('crm-settings-lists')
-      if (stored) setLists({ ...DEFAULT_LISTS, ...JSON.parse(stored) })
-    } catch { /* ignore parse errors */ }
-  }, [])
+      if (stored) return { ...DEFAULT_LISTS, ...JSON.parse(stored) }
+    } catch {}
+    return DEFAULT_LISTS
+  })
+  const [saved, setSaved] = useState(false)
 
   function setList(key: keyof typeof DEFAULT_LISTS, items: string[]) {
     setLists((p) => ({ ...p, [key]: items }))
@@ -329,6 +326,7 @@ function RecycleBinTab() {
     } finally { setLoading(false) }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load() }, [])
 
   async function act(type: 'lead' | 'client', id: string, action: 'restore' | 'delete') {

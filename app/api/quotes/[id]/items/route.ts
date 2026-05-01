@@ -14,7 +14,7 @@ export async function POST(
       include: { catalogItem: true },
     })
     return NextResponse.json({ data: item }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בהוספת פריט' }, { status: 500 })
   }
 }
@@ -32,7 +32,7 @@ export async function PATCH(
       include: { catalogItem: true },
     })
     return NextResponse.json({ data: item })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון הפריט' }, { status: 500 })
   }
 }
@@ -46,7 +46,7 @@ export async function DELETE(
     const { itemId } = await req.json()
     await prisma.quoteItem.delete({ where: { id: itemId, quoteId } })
     return NextResponse.json({ data: { success: true } })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת הפריט' }, { status: 500 })
   }
 }

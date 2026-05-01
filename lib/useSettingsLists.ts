@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 const DEFAULT_LISTS = {
   workTypes: ['ריצוף', 'גבס', 'צבע', 'אינסטלציה', 'חשמל', 'שיפוץ כללי', 'בנייה', 'גינון'],
@@ -13,14 +13,14 @@ const DEFAULT_LISTS = {
 export type SettingsLists = typeof DEFAULT_LISTS
 
 export function useSettingsLists(): SettingsLists {
-  const [lists, setLists] = useState<SettingsLists>(DEFAULT_LISTS)
-
-  useEffect(() => {
+  const [lists] = useState<SettingsLists>(() => {
+    if (typeof window === 'undefined') return DEFAULT_LISTS
     try {
       const stored = localStorage.getItem('crm-settings-lists')
-      if (stored) setLists({ ...DEFAULT_LISTS, ...JSON.parse(stored) })
+      if (stored) return { ...DEFAULT_LISTS, ...JSON.parse(stored) }
     } catch {}
-  }, [])
+    return DEFAULT_LISTS
+  })
 
   return lists
 }

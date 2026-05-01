@@ -13,6 +13,15 @@ export async function GET(req: NextRequest) {
     const clientId = searchParams.get('clientId')
     const status = searchParams.get('status')
 
+    // Lazily expire quotes past their validUntil date
+    await prisma.quote.updateMany({
+      where: {
+        status: { in: ['SENT', 'DRAFT'] },
+        validUntil: { lt: new Date() },
+      },
+      data: { status: 'EXPIRED' },
+    })
+
     const quotes = await prisma.quote.findMany({
       where: {
         ...(clientId ? { clientId } : {}),
@@ -27,7 +36,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
     return NextResponse.json({ data: quotes })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת הצעות המחיר' }, { status: 500 })
   }
 }

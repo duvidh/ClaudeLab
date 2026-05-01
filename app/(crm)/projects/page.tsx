@@ -23,6 +23,7 @@ const STATUS_OPTIONS = [
 ]
 
 export default function ProjectsPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -139,18 +140,19 @@ function CreateQuoteForm({ onClose, onCreated }: { onClose: () => void; onCreate
     fetch('/api/clients')
       .then((r) => r.json())
       .then((j) => {
-        setClients((j.data ?? []).map((c: any) => ({ id: c.id, name: c.name })))
+        setClients((j.data ?? []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })))
         setFetching(false)
       })
       .catch(() => setFetching(false))
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!clientId) { setClientProjects([]); setProjectId(''); return }
     fetch(`/api/projects?clientId=${clientId}`)
       .then((r) => r.json())
       .then((j) => {
-        setClientProjects((j.data ?? []).map((p: any) => ({ id: p.id, name: p.name })))
+        setClientProjects((j.data ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
         setProjectId('')
       })
   }, [clientId])

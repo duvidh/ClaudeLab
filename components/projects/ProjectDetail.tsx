@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  MapPin, Calendar, User, Users, DollarSign,
+  MapPin, User, Users, DollarSign,
   TrendingUp, TrendingDown, FolderKanban, Trash2, Plus,
   Upload, Download, File as FileIcon,
 } from 'lucide-react'
@@ -38,16 +38,6 @@ const TABS = [
   { id: 'financials', label: 'כספים' },
   { id: 'tasks', label: 'משימות' },
   { id: 'documents', label: 'מסמכים' },
-]
-
-const PAYMENT_METHOD_OPTIONS = [
-  { value: '', label: 'בחר אמצעי תשלום' },
-  { value: 'העברה בנקאית', label: 'העברה בנקאית' },
-  { value: 'צ\'ק', label: "צ'ק" },
-  { value: 'מזומן', label: 'מזומן' },
-  { value: 'כרטיס אשראי', label: 'כרטיס אשראי' },
-  { value: 'ביט', label: 'ביט' },
-  { value: 'PayBox', label: 'PayBox' },
 ]
 
 const PRIORITY_OPTIONS = [
@@ -161,7 +151,7 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
 
   const delayDays =
     project.plannedEndDate && !project.actualEndDate
-      ? Math.max(0, Math.floor((Date.now() - new Date(project.plannedEndDate).getTime()) / 86400000))
+      ? Math.max(0, Math.floor((Date.now() - new Date(project.plannedEndDate).getTime()) / 86400000)) // eslint-disable-line react-hooks/purity
       : 0
 
   return (
@@ -560,11 +550,8 @@ function ProjectFilesTab({
           {files.map((f) => (
             <div key={f.id} className="group flex items-center gap-3 bg-gray-800 rounded-lg px-3 py-2.5">
               <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center shrink-0 overflow-hidden">
-                {isImage(f.name) ? (
-                  <img src={f.url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <FileIcon size={16} className="text-gray-400" />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {isImage(f.name) ? <img src={f.url} alt="" className="w-full h-full object-cover" /> : <FileIcon size={16} className="text-gray-400" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{f.name}</p>

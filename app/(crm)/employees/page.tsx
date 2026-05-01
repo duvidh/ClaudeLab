@@ -7,10 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Modal } from '@/components/ui/Modal'
-import { Card } from '@/components/ui/Card'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { StatusBadge } from '@/components/shared/StatusBadge'
 import { formatDate, formatCurrency } from '@/lib/utils'
 
 type Employee = {
@@ -77,6 +75,7 @@ export default function EmployeesPage() {
     }
   }, [statusFilter])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchEmployees() }, [fetchEmployees])
 
   async function handleCreate(data: Record<string, unknown>) {

@@ -21,9 +21,9 @@ export async function GET() {
       recentLeads,
     ] = await Promise.all([
       // Lead counts grouped by status
-      prisma.lead.groupBy({ by: ['status'], where: { deletedAt: null as any }, _count: { id: true } }),
+      prisma.lead.groupBy({ by: ['status'], where: { deletedAt: null }, _count: { id: true } }),
       // Total leads
-      prisma.lead.count({ where: { deletedAt: null as any } }),
+      prisma.lead.count({ where: { deletedAt: null } }),
       // Active projects with contract values
       prisma.project.findMany({
         where: { status: { in: ['PLANNING', 'ACTIVE', 'PAUSED'] } },
@@ -63,7 +63,7 @@ export async function GET() {
       }),
       // 5 most recent leads
       prisma.lead.findMany({
-        where: { deletedAt: null as any },
+        where: { deletedAt: null },
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: {

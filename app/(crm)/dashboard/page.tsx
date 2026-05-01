@@ -4,13 +4,19 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Users, FolderKanban, CheckSquare, TrendingUp,
-  AlertTriangle, ArrowLeft, Clock,
+  AlertTriangle, ArrowLeft, Clock, DollarSign,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { formatCurrency, formatDate, timeAgo } from '@/lib/utils'
 import { LEAD_STATUS_LABELS } from '@/types'
+
+type FinanceSummary = {
+  totalRevenue: number
+  totalContracts: number
+  outstanding: number
+}
 
 type DashboardData = {
   leads: {
@@ -125,20 +131,32 @@ function KPICard({
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
+  const [finData, setFinData] = useState<FinanceSummary | null>(null)
   const [loading, setLoading] = useState(true)
-  const [companyName, setCompanyName] = useState('')
-
-  useEffect(() => {
-    fetch('/api/dashboard')
-      .then((r) => r.json())
-      .then((j) => { setData(j.data); setLoading(false) })
+  const [companyName] = useState(() => {
+    if (typeof window === 'undefined') return ''
     try {
       const stored = localStorage.getItem('crm-settings-company')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        if (parsed.name) setCompanyName(parsed.name)
-      }
+      if (stored) { const p = JSON.parse(stored); if (p.name) return p.name as string }
     } catch {}
+    return ''
+  })
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/dashboard').then((r) => r.json()),
+      fetch('/api/finance').then((r) => r.json()).catch(() => null),
+    ]).then(([dash, fin]) => {
+      setData(dash.data)
+      if (fin?.data) {
+        setFinData({
+          totalRevenue: fin.data.totalRevenue,
+          totalContracts: fin.data.totalContracts,
+          outstanding: fin.data.outstanding,
+        })
+      }
+      setLoading(false)
+    })
   }, [])
 
   if (loading || !data) {
@@ -197,11 +215,50 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Financial summary row */}
+      {finData && (
+        <Link href="/finance">
+          <Card className="hover:border-gray-600 transition-colors cursor-pointer">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <DollarSign size={14} className="text-green-400" />
+                <span className="text-xs font-semibold text-gray-400">סיכום פיננסי</span>
+              </div>
+              <span className="text-xs text-blue-400 flex items-center gap-0.5">
+                לדוח מלא <ArrowLeft size={11} />
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ חוזים</p>
+                <p className="text-base font-bold text-white">{formatCurrency(finData.totalContracts)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ גבייה</p>
+                <p className="text-base font-bold text-green-400">{formatCurrency(finData.totalRevenue)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">יתרה לגבייה</p>
+                <p className="text-base font-bold text-yellow-400">{formatCurrency(finData.outstanding)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500 mb-0.5">אחוז גבייה</p>
+                <p className="text-base font-bold text-blue-400">
+                  {finData.totalContracts > 0
+                    ? `${Math.round((finData.totalRevenue / finData.totalContracts) * 100)}%`
+                    : '—'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      )}
+
       {/* Revenue chart */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-white">הכנסות — 6 חודשים אחרונים</h2>
-          <span className="text-xs text-gray-500">כולל מע"מ</span>
+          <span className="text-xs text-gray-500">כולל מע&quot;מ</span>
         </div>
         <ResponsiveContainer width="100%" height={140}>
           <BarChart data={data.revenue.monthly} barSize={28}>

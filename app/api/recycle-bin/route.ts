@@ -5,12 +5,12 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const [leads, clients] = await Promise.all([
-      (prisma.lead as any).findMany({
+      prisma.lead.findMany({
         where: { deletedAt: { not: null } },
         select: { id: true, fullName: true, primaryPhone: true, status: true, deletedAt: true },
         orderBy: { deletedAt: 'desc' },
       }),
-      (prisma.client as any).findMany({
+      prisma.client.findMany({
         where: { deletedAt: { not: null } },
         select: { id: true, name: true, city: true, status: true, deletedAt: true },
         orderBy: { deletedAt: 'desc' },
@@ -19,8 +19,8 @@ export async function GET() {
 
     return NextResponse.json({
       data: {
-        leads: leads.map((l: any) => ({ ...l, type: 'lead' as const })),
-        clients: clients.map((c: any) => ({ ...c, type: 'client' as const })),
+        leads: leads.map((l) => ({ ...l, type: 'lead' as const })),
+        clients: clients.map((c) => ({ ...c, type: 'client' as const })),
       },
     })
   } catch (error) {
@@ -37,13 +37,13 @@ export async function POST(req: NextRequest) {
 
     if (type === 'lead') {
       if (action === 'restore') {
-        await (prisma.lead as any).update({ where: { id }, data: { deletedAt: null } })
+        await prisma.lead.update({ where: { id }, data: { deletedAt: null } })
       } else {
         await prisma.lead.delete({ where: { id } })
       }
     } else if (type === 'client') {
       if (action === 'restore') {
-        await (prisma.client as any).update({ where: { id }, data: { deletedAt: null } })
+        await prisma.client.update({ where: { id }, data: { deletedAt: null } })
       } else {
         await prisma.client.delete({ where: { id } })
       }

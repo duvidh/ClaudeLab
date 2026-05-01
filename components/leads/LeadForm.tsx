@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Lead } from '@/types'
 
@@ -182,8 +183,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             value={form.email}
             onChange={(e) => set('email', e.target.value)}
           />
-          <div>
-            <label className="text-sm text-gray-300 font-medium block mb-1">עיר/אזור</label>
+          <FormField id="city" label="עיר/אזור">
             <input
               list="lead-form-cities"
               id="city"
@@ -195,7 +195,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             <datalist id="lead-form-cities">
               {lists.cities.map((c) => <option key={c} value={c} />)}
             </datalist>
-          </div>
+          </FormField>
           <div className="col-span-2">
             <Input
               id="propertyAddress"
@@ -258,8 +258,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
           פרטי פרויקט מבוקש
         </h3>
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-sm text-gray-300 font-medium block mb-1">סוג עבודה</label>
+          <FormField id="workType" label="סוג עבודה">
             <input
               list="lead-form-worktypes"
               id="workType"
@@ -271,7 +270,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             <datalist id="lead-form-worktypes">
               {lists.workTypes.map((w) => <option key={w} value={w} />)}
             </datalist>
-          </div>
+          </FormField>
           <Input
             id="estimatedSize"
             label='גודל משוער (מ"ר)'
@@ -295,18 +294,16 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
             value={form.urgency}
             onChange={(e) => set('urgency', e.target.value)}
           />
-          <div className="col-span-2">
-            <label className="text-sm text-gray-300 font-medium block mb-1">
-              תיאור צורך
-            </label>
+          <FormField id="needDescription" label="תיאור צורך" className="col-span-2">
             <textarea
+              id="needDescription"
               placeholder="תאר את הצורך של הלקוח..."
               value={form.needDescription}
               onChange={(e) => set('needDescription', e.target.value)}
               rows={3}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </FormField>
           <div className="col-span-2 flex items-center gap-2">
             <input
               type="checkbox"

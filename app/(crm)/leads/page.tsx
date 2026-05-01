@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, LayoutList, LayoutGrid, Filter, RefreshCw } from 'lucide-react'
+import { Plus, LayoutList, LayoutGrid, RefreshCw, Download } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -12,6 +12,35 @@ import { LeadForm } from '@/components/leads/LeadForm'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Users } from 'lucide-react'
 import type { Lead } from '@/types'
+
+const LEAD_STATUS_LABELS_HE: Record<string, string> = {
+  NEW: 'חדש', CONTACTED: 'נוצר קשר', MEETING_SCHEDULED: 'פגישה נקבעה',
+  QUOTE_SENT: 'הצעה נשלחה', WON: 'זכינו', LOST: 'אבד', CONVERTED: 'הומר',
+}
+
+function exportLeadsCSV(leads: Lead[]) {
+  const headers = ['שם', 'טלפון', 'אימייל', 'עיר', 'סטטוס', 'מקור', 'נציג', 'תאריך יצירה']
+  const rows = leads.map((l) => [
+    l.fullName,
+    l.primaryPhone,
+    l.email ?? '',
+    l.city ?? '',
+    LEAD_STATUS_LABELS_HE[l.status] ?? l.status,
+    l.leadSource ?? '',
+    l.assignedRep ?? '',
+    new Date(l.createdAt).toLocaleDateString('he-IL'),
+  ])
+  const csv = [headers, ...rows]
+    .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 const STATUS_FILTER_OPTIONS = [
   { value: '', label: 'כל הסטטוסים' },
@@ -83,10 +112,20 @@ export default function LeadsPage() {
         title="לידים"
         subtitle={`${leads.length} לידים סה"כ · ${activeLeads.length} פעילים`}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus size={16} />
-            ליד חדש
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => exportLeadsCSV(leads)}
+              disabled={leads.length === 0}
+              title="ייצוא CSV"
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download size={16} />
+            </button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus size={16} />
+              ליד חדש
+            </Button>
+          </div>
         }
       />
 

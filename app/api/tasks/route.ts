@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ priority: 'desc' }, { dueDate: 'asc' }, { createdAt: 'desc' }],
     })
     return NextResponse.json({ data: tasks })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת המשימות' }, { status: 500 })
   }
 }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const task = await prisma.task.create({ data: body })
     return NextResponse.json({ data: task }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת המשימה' }, { status: 500 })
   }
 }
@@ -42,7 +42,7 @@ export async function PATCH(req: NextRequest) {
     const { id, ...data } = await req.json()
     const task = await prisma.task.update({ where: { id }, data })
     return NextResponse.json({ data: task })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון המשימה' }, { status: 500 })
   }
 }
@@ -54,7 +54,7 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'חסר מזהה משימה' }, { status: 400 })
     await prisma.task.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת המשימה' }, { status: 500 })
   }
 }

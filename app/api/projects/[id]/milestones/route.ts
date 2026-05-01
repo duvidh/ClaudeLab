@@ -14,7 +14,7 @@ export async function POST(
       data: { ...body, projectId: id, order: count },
     })
     return NextResponse.json({ data: milestone }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת אבן דרך' }, { status: 500 })
   }
 }
@@ -39,7 +39,7 @@ export async function PATCH(
       )
     }
     return NextResponse.json({ data: milestone })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון אבן דרך' }, { status: 500 })
   }
 }

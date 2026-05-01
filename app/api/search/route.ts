@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     const [leads, clients, projects] = await Promise.all([
       prisma.lead.findMany({
         where: {
-          deletedAt: null as any,
+          deletedAt: null,
           OR: [
             { fullName: { contains: q } },
             { primaryPhone: { contains: q } },
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.client.findMany({
         where: {
-          deletedAt: null as any,
+          deletedAt: null,
           OR: [
             { name: { contains: q } },
             { company: { contains: q } },
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     ]
 
     return NextResponse.json({ data: results })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בחיפוש' }, { status: 500 })
   }
 }

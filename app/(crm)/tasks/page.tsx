@@ -110,6 +110,7 @@ export default function TasksPage() {
     }
   }, [view, statusFilter, priorityFilter, taskTypeFilter])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchTasks() }, [fetchTasks])
 
   useEffect(() => {
@@ -433,9 +434,9 @@ function TaskForm({
       fetch('/api/projects').then((r) => r.json()).catch(() => ({ data: [] })),
     ]).then(([emp, lds, cls, prj]) => {
       setEmployees(emp.data ?? [])
-      setLeads((lds.data ?? []).map((l: any) => ({ id: l.id, fullName: l.fullName })))
-      setClients((cls.data ?? []).map((c: any) => ({ id: c.id, name: c.name })))
-      setProjects((prj.data ?? []).map((p: any) => ({ id: p.id, name: p.name })))
+      setLeads((lds.data ?? []).map((l: { id: string; fullName: string }) => ({ id: l.id, fullName: l.fullName })))
+      setClients((cls.data ?? []).map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })))
+      setProjects((prj.data ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
     })
   }, [])
 

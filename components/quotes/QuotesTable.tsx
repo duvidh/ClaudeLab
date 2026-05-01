@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { FileText, ChevronLeft, Trash2, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
+import { DataTable } from '@/components/ui/DataTable'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import type { Quote } from '@/types'
 
@@ -38,6 +39,19 @@ function getExpirationStatus(quote: QuoteWithRelations): 'expired' | 'expiring-s
 
 type SortField = 'quoteNumber' | 'clientName' | 'date' | 'validUntil' | 'total' | 'status'
 type SortDir = 'asc' | 'desc'
+
+function Th({ label, active, sortDir, onClick }: { label: string; active: boolean; sortDir: SortDir; onClick: () => void }) {
+  return (
+    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors">
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {active
+          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+          : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
+      </span>
+    </th>
+  )
+}
 
 export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]; onDelete?: (id: string) => void }) {
   const [confirmId, setConfirmId] = useState<string | null>(null)
@@ -86,101 +100,79 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
 
   if (quotes.length === 0) return null
 
-  function Th({ field, label }: { field: SortField; label: string }) {
-    const active = sortField === field
-    return (
-      <th
-        onClick={() => toggleSort(field)}
-        className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors"
-      >
-        <span className="inline-flex items-center gap-1">
-          {label}
-          {active
-            ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
-            : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
-        </span>
-      </th>
-    )
-  }
-
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-gray-700">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-800/60 border-b border-gray-700 group">
-              <Th field="quoteNumber" label="מספר הצעה" />
-              <Th field="clientName" label="לקוח" />
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">פרויקט</th>
-              <Th field="date" label="תאריך" />
-              <Th field="validUntil" label="תוקף" />
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">פריטים</th>
-              <Th field="total" label='סה"כ כולל מע"מ' />
-              <Th field="status" label="סטטוס" />
-              <th className="px-4 py-3 font-semibold text-gray-400 text-right">גרסה</th>
-              <th className="px-4 py-3" />
+      <DataTable
+        headers={[
+          <Th key="quoteNumber" label="מספר הצעה" active={sortField === 'quoteNumber'} sortDir={sortDir} onClick={() => toggleSort('quoteNumber')} />,
+          <Th key="clientName" label="לקוח" active={sortField === 'clientName'} sortDir={sortDir} onClick={() => toggleSort('clientName')} />,
+          'פרויקט',
+          <Th key="date" label="תאריך" active={sortField === 'date'} sortDir={sortDir} onClick={() => toggleSort('date')} />,
+          <Th key="validUntil" label="תוקף" active={sortField === 'validUntil'} sortDir={sortDir} onClick={() => toggleSort('validUntil')} />,
+          'פריטים',
+          <Th key="total" label='סה"כ כולל מע"מ' active={sortField === 'total'} sortDir={sortDir} onClick={() => toggleSort('total')} />,
+          <Th key="status" label="סטטוס" active={sortField === 'status'} sortDir={sortDir} onClick={() => toggleSort('status')} />,
+          'גרסה',
+          <th key="actions" className="px-4 py-3" />,
+        ]}
+        data={sorted}
+        renderRow={(quote) => {
+          const expStatus = getExpirationStatus(quote)
+          return (
+            <tr key={quote.id} className="hover:bg-gray-800/40 group transition-colors">
+              <td className="px-4 py-3 font-medium text-blue-400">
+                <Link href={`/quotes/${quote.id}`} className="hover:underline flex items-center gap-1">
+                  <FileText size={13} />
+                  {quote.quoteNumber}
+                </Link>
+              </td>
+              <td className="px-4 py-3">
+                <Link href={`/clients/${quote.client.id}`} className="text-gray-300 hover:text-white">
+                  {quote.client.name}
+                </Link>
+              </td>
+              <td className="px-4 py-3 text-gray-400">{quote.project?.name || '—'}</td>
+              <td className="px-4 py-3 text-gray-400">{formatDate(quote.date)}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1.5">
+                  {expStatus && (
+                    <span title={expStatus === 'expired' ? 'פג תוקף' : 'פג תוקף בקרוב'}>
+                      <AlertCircle
+                        size={13}
+                        className={expStatus === 'expired' ? 'text-red-400 shrink-0' : 'text-amber-400 shrink-0'}
+                      />
+                    </span>
+                  )}
+                  <span className={
+                    expStatus === 'expired' ? 'text-red-400' :
+                    expStatus === 'expiring-soon' ? 'text-amber-400' :
+                    'text-gray-400'
+                  }>
+                    {quote.validUntil ? formatDate(quote.validUntil) : '—'}
+                  </span>
+                </div>
+              </td>
+              <td className="px-4 py-3 text-gray-400">{quote._count.items}</td>
+              <td className="px-4 py-3 font-medium text-gray-200">
+                {quote.items.length > 0 ? formatCurrency(calcTotal(quote.items, quote.discount)) : '—'}
+              </td>
+              <td className="px-4 py-3"><StatusBadge type="quote" value={quote.status} /></td>
+              <td className="px-4 py-3 text-gray-500">v{quote.version}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
+                    <Trash2 size={14} />
+                  </button>
+                  <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
+                    פתח
+                    <ChevronLeft size={13} />
+                  </Link>
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-800">
-            {sorted.map((quote) => {
-              const expStatus = getExpirationStatus(quote)
-              return (
-                <tr key={quote.id} className="hover:bg-gray-800/40 group transition-colors">
-                  <td className="px-4 py-3 font-medium text-blue-400">
-                    <Link href={`/quotes/${quote.id}`} className="hover:underline flex items-center gap-1">
-                      <FileText size={13} />
-                      {quote.quoteNumber}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link href={`/clients/${quote.client.id}`} className="text-gray-300 hover:text-white">
-                      {quote.client.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{quote.project?.name || '—'}</td>
-                  <td className="px-4 py-3 text-gray-400">{formatDate(quote.date)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      {expStatus && (
-                        <span title={expStatus === 'expired' ? 'פג תוקף' : 'פג תוקף בקרוב'}>
-                          <AlertCircle
-                            size={13}
-                            className={expStatus === 'expired' ? 'text-red-400 shrink-0' : 'text-amber-400 shrink-0'}
-                          />
-                        </span>
-                      )}
-                      <span className={
-                        expStatus === 'expired' ? 'text-red-400' :
-                        expStatus === 'expiring-soon' ? 'text-amber-400' :
-                        'text-gray-400'
-                      }>
-                        {quote.validUntil ? formatDate(quote.validUntil) : '—'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400">{quote._count.items}</td>
-                  <td className="px-4 py-3 font-medium text-gray-200">
-                    {quote.items.length > 0 ? formatCurrency(calcTotal(quote.items, quote.discount)) : '—'}
-                  </td>
-                  <td className="px-4 py-3"><StatusBadge type="quote" value={quote.status} /></td>
-                  <td className="px-4 py-3 text-gray-500">v{quote.version}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
-                        <Trash2 size={14} />
-                      </button>
-                      <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
-                        פתח
-                        <ChevronLeft size={13} />
-                      </Link>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+          )
+        }}
+      />
       <ConfirmModal open={!!confirmId} onClose={() => setConfirmId(null)} onConfirm={handleDelete}
         title="מחיקת הצעת מחיר" message={`האם למחוק את הצעת מחיר "${confirmQuote?.quoteNumber}"? פעולה זו אינה ניתנת לביטול.`}
         confirmLabel="מחק" loading={deleting} />

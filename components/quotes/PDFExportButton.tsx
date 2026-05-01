@@ -31,18 +31,24 @@ type QuoteForPDF = {
 
 export function PDFExportButton({ quote, clientId }: { quote: QuoteForPDF; clientId?: string }) {
   const [ready, setReady] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [PDFDownloadLink, setPDFDownloadLink] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [QuotePDFDocument, setQuotePDFDocument] = useState<any>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pdfLib, setPdfLib] = useState<any>(null)
-  const [companyName, setCompanyName] = useState('')
+  const [companyName] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    try {
+      const stored = localStorage.getItem('crm-settings-company')
+      if (stored) return JSON.parse(stored).name ?? ''
+    } catch {}
+    return ''
+  })
   const [saving, setSaving] = useState(false)
   const [savedDoc, setSavedDoc] = useState(false)
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) setCompanyName(JSON.parse(stored).name ?? '')
-    } catch {}
     Promise.all([
       import('@react-pdf/renderer'),
       import('./QuotePDF'),

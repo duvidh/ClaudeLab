@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
     const leads = await prisma.lead.findMany({
       where: {
-        deletedAt: null as any,
+        deletedAt: null,
         ...(status ? { status } : {}),
         ...(rep ? { assignedRep: rep } : {}),
         ...(search
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
     return NextResponse.json({ data: leads })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת הלידים' }, { status: 500 })
   }
 }

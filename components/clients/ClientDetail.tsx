@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Phone, Mail, MapPin, Building2, CreditCard,
-  FolderKanban, Plus, FileText, User, Calendar, Trash2, ChevronLeft,
-  Paperclip, Upload, Download, File as FileIcon,
+  FolderKanban, Plus, FileText, User, Calendar, Trash2,
+  Paperclip, Upload, Download, File as FileIcon, Receipt, CheckCircle2, Clock,
 } from 'lucide-react'
 import { Tabs } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
@@ -20,7 +20,7 @@ import { FinancialSummary } from '@/components/clients/FinancialSummary'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { formatDate, formatCurrency, timeAgo } from '@/lib/utils'
+import { formatDate, formatCurrency } from '@/lib/utils'
 import type { ClientFinancials } from '@/lib/calculations'
 import type { Client, Project, Quote, Invoice, Task, Payment, Milestone, Meeting, ClientFile } from '@/types'
 
@@ -44,6 +44,7 @@ const TABS = [
   { id: 'payments', label: 'תשלומים' },
   { id: 'tasks', label: 'משימות' },
   { id: 'meetings', label: 'פגישות' },
+  { id: 'invoices', label: 'חשבוניות' },
   { id: 'documents', label: 'מסמכים' },
 ]
 
@@ -77,6 +78,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
       : t.id === 'quotes' ? client.quotes.length
       : t.id === 'tasks' ? client.tasks.length
       : t.id === 'meetings' ? client.meetings.length
+      : t.id === 'invoices' ? client.invoices.length
       : t.id === 'documents' ? client.files.length
       : undefined,
   }))
@@ -425,6 +427,11 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
       {/* Meetings tab */}
       {activeTab === 'meetings' && (
         <ClientMeetingsTab clientId={client.id} initialMeetings={client.meetings} />
+      )}
+
+      {/* Invoices tab */}
+      {activeTab === 'invoices' && (
+        <ClientInvoicesTab clientId={client.id} initialInvoices={client.invoices} />
       )}
 
       {/* Documents tab */}
@@ -883,6 +890,7 @@ function ClientFilesTab({
 }
 
 function NewQuoteFromClientForm({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   clientId: _clientId,
   projects,
   onSubmit,
@@ -929,5 +937,137 @@ function NewQuoteFromClientForm({
         <Button type="button" variant="secondary" onClick={onCancel}>ביטול</Button>
       </div>
     </form>
+  )
+}
+
+function ClientInvoicesTab({
+  clientId,
+  initialInvoices,
+}: {
+  clientId: string
+  initialInvoices: Invoice[]
+}) {
+  const [invoices, setInvoices] = useState(initialInvoices)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [form, setForm] = useState({ amount: '', date: new Date().toISOString().slice(0, 10), dueDate: '' })
+
+  async function markPaid(inv: Invoice) {
+    const res = await fetch(`/api/invoices/${inv.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isPaid: !inv.isPaid }),
+    })
+    if (res.ok) {
+      const json = await res.json()
+      setInvoices((prev) => prev.map((i) => i.id === inv.id ? { ...i, isPaid: json.data.isPaid } : i))
+    }
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.amount) return
+    setCreating(true)
+    try {
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId,
+          amount: form.amount,
+          date: form.date || undefined,
+          dueDate: form.dueDate || undefined,
+        }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setInvoices((prev) => [json.data, ...prev])
+        setCreateOpen(false)
+        setForm({ amount: '', date: new Date().toISOString().slice(0, 10), dueDate: '' })
+      }
+    } finally { setCreating(false) }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-400">חשבוניות לתשלום עבור לקוח זה</p>
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
+          <Plus size={13} />
+          חשבונית חדשה
+        </Button>
+      </div>
+
+      {invoices.length === 0 ? (
+        <EmptyState icon={Receipt} title="אין חשבוניות" action={<Button size="sm" onClick={() => setCreateOpen(true)}><Plus size={13} />חשבונית חדשה</Button>} />
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-700">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-800/60 border-b border-gray-700 text-gray-400 text-xs">
+                <th className="px-4 py-3 font-semibold text-right">מספר</th>
+                <th className="px-4 py-3 font-semibold text-right">סכום</th>
+                <th className="px-4 py-3 font-semibold text-right">תאריך</th>
+                <th className="px-4 py-3 font-semibold text-right">פירעון</th>
+                <th className="px-4 py-3 font-semibold text-right">סטטוס</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {invoices.map((inv) => {
+                const isOverdue = !inv.isPaid && inv.dueDate && new Date(inv.dueDate) < new Date()
+                return (
+                  <tr key={inv.id} className="hover:bg-gray-800/30">
+                    <td className="px-4 py-2.5 font-mono text-xs text-gray-400">{inv.number}</td>
+                    <td className="px-4 py-2.5 font-semibold text-white">{formatCurrency(inv.amount)}</td>
+                    <td className="px-4 py-2.5 text-gray-400">{formatDate(inv.date)}</td>
+                    <td className="px-4 py-2.5">
+                      {inv.dueDate ? (
+                        <span className={isOverdue ? 'text-red-400' : 'text-gray-400'}>{formatDate(inv.dueDate)}</span>
+                      ) : '—'}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <button
+                        onClick={() => markPaid(inv)}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all ${
+                          inv.isPaid
+                            ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
+                            : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                        }`}
+                      >
+                        {inv.isPaid ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                        {inv.isPaid ? 'שולמה' : 'ממתינה'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="חשבונית חדשה" size="sm">
+        <form onSubmit={handleCreate} className="space-y-3">
+          <Input
+            label="סכום *"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            value={form.amount}
+            onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
+            required
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="תאריך" type="date" value={form.date} onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))} />
+            <Input label="תאריך פירעון" type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button type="submit" loading={creating} disabled={!form.amount} className="flex-1">צור חשבונית</Button>
+            <Button type="button" variant="secondary" onClick={() => setCreateOpen(false)}>ביטול</Button>
+          </div>
+        </form>
+      </Modal>
+    </div>
   )
 }

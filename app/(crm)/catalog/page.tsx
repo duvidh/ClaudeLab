@@ -397,7 +397,7 @@ function CatalogItemForm({
       <div className="grid grid-cols-2 gap-3">
         {/* SKU with generate button */}
         <div>
-          <label className="text-sm text-gray-300 font-medium block mb-1">מק"ט *</label>
+          <label className="text-sm text-gray-300 font-medium block mb-1">מק&quot;ט *</label>
           <div className="flex gap-1">
             <input
               value={form.sku}

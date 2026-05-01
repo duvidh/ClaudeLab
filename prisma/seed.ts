@@ -46,7 +46,7 @@ async function main() {
     }
   })
 
-  const lead2 = await prisma.lead.upsert({
+  await prisma.lead.upsert({
     where: { id: 'seed-lead-002' },
     update: {},
     create: {
@@ -86,7 +86,7 @@ async function main() {
     }
   })
 
-  const lead4 = await prisma.lead.upsert({
+  await prisma.lead.upsert({
     where: { id: 'seed-lead-004' },
     update: {},
     create: {
@@ -103,7 +103,7 @@ async function main() {
     }
   })
 
-  const lead5 = await prisma.lead.upsert({
+  await prisma.lead.upsert({
     where: { id: 'seed-lead-005' },
     update: {},
     create: {
@@ -218,7 +218,7 @@ async function main() {
   })
 
   // Quotes
-  const quote1 = await prisma.quote.upsert({
+  await prisma.quote.upsert({
     where: { quoteNumber: 'Q-2024-001' },
     update: {},
     create: {
@@ -242,7 +242,7 @@ async function main() {
     }
   })
 
-  const quote2 = await prisma.quote.upsert({
+  await prisma.quote.upsert({
     where: { quoteNumber: 'Q-2024-002' },
     update: {},
     create: {
@@ -267,7 +267,7 @@ async function main() {
   })
 
   // Tasks
-  const tasks = await Promise.all([
+  await Promise.all([
     prisma.task.create({ data: { title: 'להכין הצעת מחיר לבניין א.ב.ג', description: 'לפרט עבודות שיפוץ 400 מ"ר משרדים', priority: 'HIGH', status: 'PENDING', dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), assignedTo: 'יוסי כהן', leadId: lead3.id } }),
     prisma.task.create({ data: { title: 'רכש חומרים — פרויקט כץ', description: 'להזמין פרקט וצבע לפי כמויות הצעת מחיר', priority: 'HIGH', status: 'IN_PROGRESS', dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), assignedTo: 'יוסי כהן', projectId: project1.id, clientId: client1.id } }),
     prisma.task.create({ data: { title: 'מעקב אחר הצעת מחיר — קפה מרקט', priority: 'MEDIUM', status: 'PENDING', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), assignedTo: 'מירי שלום', clientId: client2.id, projectId: project2.id } }),

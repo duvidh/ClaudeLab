@@ -20,6 +20,11 @@ import {
   Upload,
   Download,
   File as FileIcon,
+  MessageSquare,
+  Users,
+  ClipboardList,
+  ArrowRightLeft,
+  Sparkles,
 } from 'lucide-react'
 import { Tabs } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
@@ -43,6 +48,7 @@ interface LeadDetailProps {
 
 const TABS = [
   { id: 'details', label: 'פרטים' },
+  { id: 'activity', label: 'פעילות' },
   { id: 'notes', label: 'הערות' },
   { id: 'meetings', label: 'פגישות/שיחות' },
   { id: 'documents', label: 'מסמכים' },
@@ -232,6 +238,10 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
             )}
           </Card>
         </div>
+      )}
+
+      {activeTab === 'activity' && (
+        <LeadActivityFeed lead={lead} />
       )}
 
       {activeTab === 'notes' && (
@@ -553,6 +563,127 @@ function MeetingsTab({ leadId, initialMeetings }: { leadId: string; initialMeeti
           </div>
         </form>
       </Modal>
+    </div>
+  )
+}
+
+type ActivityEvent = {
+  id: string
+  type: 'created' | 'note' | 'meeting' | 'task' | 'converted' | 'status'
+  title: string
+  detail?: string
+  date: string | Date
+  author?: string
+}
+
+const ACTIVITY_ICON: Record<ActivityEvent['type'], React.ElementType> = {
+  created: Sparkles,
+  note: MessageSquare,
+  meeting: Users,
+  task: ClipboardList,
+  converted: ArrowRightLeft,
+  status: CheckCircle2,
+}
+
+const ACTIVITY_COLOR: Record<ActivityEvent['type'], string> = {
+  created: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  note: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  meeting: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  task: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  converted: 'bg-green-500/20 text-green-400 border-green-500/30',
+  status: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+}
+
+function LeadActivityFeed({ lead }: { lead: LeadWithRelations }) {
+  const events: ActivityEvent[] = []
+
+  events.push({
+    id: 'created',
+    type: 'created',
+    title: 'ליד נוצר',
+    detail: `${lead.fullName} נוסף למערכת`,
+    date: lead.createdAt,
+  })
+
+  for (const note of lead.notes ?? []) {
+    events.push({
+      id: `note-${note.id}`,
+      type: 'note',
+      title: 'הערה נוספה',
+      detail: note.content.length > 80 ? note.content.slice(0, 80) + '…' : note.content,
+      date: note.createdAt,
+      author: note.author,
+    })
+  }
+
+  for (const meeting of lead.meetings ?? []) {
+    events.push({
+      id: `meeting-${meeting.id}`,
+      type: 'meeting',
+      title: meeting.type === 'שיחה' ? 'שיחה נרשמה' : 'פגישה נרשמה',
+      detail: meeting.summary ?? meeting.type,
+      date: meeting.date,
+    })
+  }
+
+  for (const task of lead.tasks ?? []) {
+    events.push({
+      id: `task-${task.id}`,
+      type: 'task',
+      title: 'משימה נוצרה',
+      detail: task.title,
+      date: task.createdAt,
+      author: task.assignedTo,
+    })
+  }
+
+  if (lead.convertedAt) {
+    events.push({
+      id: 'converted',
+      type: 'converted',
+      title: 'הומר ללקוח',
+      detail: lead.client ? `לקוח: ${lead.client.name}` : undefined,
+      date: lead.convertedAt,
+    })
+  }
+
+  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  if (events.length === 0) {
+    return <p className="text-center text-gray-500 text-sm py-8">אין פעילות עדיין</p>
+  }
+
+  return (
+    <div className="relative">
+      <div className="absolute end-[18px] top-0 bottom-0 w-px bg-gray-700" />
+      <div className="space-y-1">
+        {events.map((ev) => {
+          const Icon = ACTIVITY_ICON[ev.type]
+          const colorClass = ACTIVITY_COLOR[ev.type]
+          return (
+            <div key={ev.id} className="flex items-start gap-3 pe-10 py-1.5">
+              <div className="flex-1 min-w-0">
+                <div className={`rounded-lg border px-3 py-2.5 ${colorClass}`}>
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <span className="text-xs font-semibold">{ev.title}</span>
+                    <span className="text-[10px] opacity-60 shrink-0">
+                      {new Date(ev.date).toLocaleString('he-IL', {
+                        day: 'numeric', month: 'short', year: '2-digit',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  {ev.detail && <p className="text-[11px] opacity-75 leading-relaxed">{ev.detail}</p>}
+                  {ev.author && <p className="text-[10px] opacity-50 mt-0.5">נציג: {ev.author}</p>}
+                </div>
+              </div>
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${colorClass}`}>
+                <Icon size={13} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

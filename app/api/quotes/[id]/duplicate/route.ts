@@ -34,6 +34,7 @@ export async function POST(
         notes: original.notes,
         validUntil: original.validUntil,
         items: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           create: original.items.map(({ id: _id, quoteId: _qid, ...item }) => item),
         },
       },

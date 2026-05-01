@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Project } from '@/types'
 
@@ -15,17 +16,6 @@ const STATUS_OPTIONS = [
   { value: 'PAUSED', label: 'מושהה' },
   { value: 'COMPLETED', label: 'הושלם' },
   { value: 'CANCELLED', label: 'בוטל' },
-]
-
-const TYPE_OPTIONS = [
-  { value: '', label: 'בחר סוג פרויקט' },
-  { value: 'שיפוץ', label: 'שיפוץ' },
-  { value: 'בניה חדשה', label: 'בניה חדשה' },
-  { value: 'תוספת בניה', label: 'תוספת בניה' },
-  { value: 'עיצוב פנים', label: 'עיצוב פנים' },
-  { value: 'בניה מסחרית', label: 'בניה מסחרית' },
-  { value: 'תשתיות', label: 'תשתיות' },
-  { value: 'אחר', label: 'אחר' },
 ]
 
 type ProjectFormData = {
@@ -130,8 +120,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
           <Input id="address" label="כתובת" placeholder="רחוב הרצל 1, תל אביב" value={form.address} onChange={(e) => set('address', e.target.value)} />
         </div>
         <Select id="status" label="סטטוס" options={STATUS_OPTIONS} value={form.status} onChange={(e) => set('status', e.target.value)} />
-        <div>
-          <label className="text-sm text-gray-300 font-medium block mb-1">מנהל פרויקט</label>
+        <FormField id="projectManager" label="מנהל פרויקט">
           <input
             list="pm-employees"
             id="projectManager"
@@ -143,7 +132,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
           <datalist id="pm-employees">
             {employees.map((e) => <option key={e.id} value={e.name} />)}
           </datalist>
-        </div>
+        </FormField>
         <Input id="contractValue" label="ערך חוזה (₪)" type="number" placeholder="500000" value={form.contractValue} onChange={(e) => set('contractValue', e.target.value)} />
         {employees.length > 0 && (
           <div className="col-span-2">
@@ -168,10 +157,15 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
         <div />
         <Input id="startDate" label="תאריך התחלה" type="date" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
         <Input id="plannedEndDate" label="תאריך סיום מתוכנן" type="date" value={form.plannedEndDate} onChange={(e) => set('plannedEndDate', e.target.value)} />
-        <div className="col-span-2">
-          <label className="text-sm text-gray-300 font-medium block mb-1">הערות</label>
-          <textarea value={form.notes} onChange={(e) => set('notes', e.target.value)} rows={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
+        <FormField id="notes" label="הערות" className="col-span-2">
+          <textarea
+            id="notes"
+            value={form.notes}
+            onChange={(e) => set('notes', e.target.value)}
+            rows={2}
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </FormField>
       </div>
       <div className="flex gap-2 pt-1">
         <Button type="submit" loading={loading} className="flex-1">{initialData ? 'עדכן פרויקט' : 'צור פרויקט'}</Button>

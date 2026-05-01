@@ -18,6 +18,8 @@ import {
   Users2,
   Truck,
   DollarSign,
+  Receipt,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +31,8 @@ const NAV_ITEMS = [
   { href: '/projects', label: 'פרויקטים', icon: FolderKanban },
   { href: '/quotes', label: 'הצעות מחיר', icon: FileText },
   { href: '/finance', label: 'כספים', icon: DollarSign },
+  { href: '/payments', label: 'תשלומים', icon: CreditCard },
+  { href: '/invoices', label: 'חשבוניות', icon: Receipt },
   { href: '/catalog', label: 'קטלוג חומרים', icon: Package },
   { href: '/suppliers', label: 'ספקים', icon: Truck },
   { href: '/tasks', label: 'משימות', icon: CheckSquare },
@@ -43,23 +47,27 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const [companyName, setCompanyName] = useState('BuildCRM')
-  const [logo, setLogo] = useState<string | null>(null)
-
-  function loadSettings() {
+  const [companyName, setCompanyName] = useState(() => {
+    if (typeof window === 'undefined') return 'BuildCRM'
     try {
       const stored = localStorage.getItem('crm-settings-company')
-      if (stored) {
-        const data = JSON.parse(stored)
-        if (data.name) setCompanyName(data.name)
-      }
-      const storedLogo = localStorage.getItem('crm-settings-logo')
-      setLogo(storedLogo ?? null)
+      if (stored) { const d = JSON.parse(stored); if (d.name) return d.name as string }
     } catch {}
-  }
+    return 'BuildCRM'
+  })
+  const [logo, setLogo] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    try { return localStorage.getItem('crm-settings-logo') } catch { return null }
+  })
 
   useEffect(() => {
-    loadSettings()
+    function loadSettings() {
+      try {
+        const stored = localStorage.getItem('crm-settings-company')
+        if (stored) { const d = JSON.parse(stored); if (d.name) setCompanyName(d.name) }
+        setLogo(localStorage.getItem('crm-settings-logo'))
+      } catch {}
+    }
     window.addEventListener('crm-settings-changed', loadSettings)
     return () => window.removeEventListener('crm-settings-changed', loadSettings)
   }, [])
@@ -85,11 +93,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-600 flex items-center justify-center shrink-0">
-              {logo ? (
-                <img src={logo} alt="לוגו" className="w-full h-full object-contain" />
-              ) : (
-                <HardHat size={16} className="text-white" />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {logo ? <img src={logo} alt="לוגו" className="w-full h-full object-contain" /> : <HardHat size={16} className="text-white" />}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-white leading-none truncate">{companyName}</p>

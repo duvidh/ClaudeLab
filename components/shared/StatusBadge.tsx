@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/Badge'
 import {
   LEAD_STATUS_LABELS,
   LEAD_STATUS_COLORS,

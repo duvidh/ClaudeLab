@@ -12,7 +12,7 @@ export async function POST(
       data: { leadId: id, content, author: author || 'נציג' },
     })
     return NextResponse.json({ data: note }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בהוספת הערה' }, { status: 500 })
   }
 }

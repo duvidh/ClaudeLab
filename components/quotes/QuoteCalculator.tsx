@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Plus, Trash2, Search, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { useState } from 'react'
+import { Plus, Trash2, Search } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { calcLinePrice, calcElementCost, calcProfitPercent, calcQuoteSummary } from '@/lib/calculations'
 import type { QuoteItem, CatalogItem } from '@/types'
@@ -134,7 +133,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
           <thead>
             <tr className="bg-gray-800/80 border-b border-gray-700 text-gray-400">
               <th className="px-2 py-2.5 text-right font-semibold w-6">#</th>
-              <th className="px-2 py-2.5 text-right font-semibold min-w-[160px]">שם מוצר / מק"ט</th>
+              <th className="px-2 py-2.5 text-right font-semibold min-w-[160px]">שם מוצר / מק&quot;ט</th>
               <th className="px-2 py-2.5 text-right font-semibold">קטגוריה</th>
               <th className="px-2 py-2.5 text-right font-semibold w-16" title="אורך / כמות במטרים">מ׳ (1)</th>
               <th className="px-2 py-2.5 text-right font-semibold w-16" title="רוחב / גובה בסנטימטרים">ס״מ (2)</th>

@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronRight, ChevronLeft, Calendar, Users, CheckSquare, FolderOpen } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Calendar, Users, CheckSquare, FolderOpen, Plus } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 type CalendarMeeting = {
   id: string
@@ -128,13 +132,26 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
-  useEffect(() => {
+  // Quick-add modal state
+  const [createType, setCreateType] = useState<'meeting' | 'task' | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [meetingType, setMeetingType] = useState('פגישה')
+  const [meetingSummary, setMeetingSummary] = useState('')
+  const [taskTitle, setTaskTitle] = useState('')
+  const [taskPriority, setTaskPriority] = useState('MEDIUM')
+
+  async function loadCalendar(y: number, m: number) {
     setLoading(true)
     setSelectedDay(null)
-    fetch(`/api/calendar?year=${year}&month=${month}`)
-      .then((r) => r.json())
-      .then((json) => setData(json.data ?? { meetings: [], tasks: [], projects: [] }))
-      .finally(() => setLoading(false))
+    const res = await fetch(`/api/calendar?year=${y}&month=${m}`)
+    const json = await res.json()
+    setData(json.data ?? { meetings: [], tasks: [], projects: [] })
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadCalendar(year, month)
   }, [year, month])
 
   function prevMonth() {
@@ -151,6 +168,46 @@ export default function CalendarPage() {
     setYear(today.getFullYear())
     setMonth(today.getMonth() + 1)
     setSelectedDay(today.getDate())
+  }
+
+  function openCreate(type: 'meeting' | 'task') {
+    setCreateType(type)
+    setMeetingType('פגישה')
+    setMeetingSummary('')
+    setTaskTitle('')
+    setTaskPriority('MEDIUM')
+  }
+
+  function closeCreate() {
+    setCreateType(null)
+  }
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedDay) return
+    setCreating(true)
+    try {
+      const date = new Date(year, month - 1, selectedDay, 9, 0)
+      if (createType === 'meeting') {
+        await fetch('/api/meetings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, type: meetingType, summary: meetingSummary || undefined }),
+        })
+      } else {
+        await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: taskTitle, dueDate: date, priority: taskPriority }),
+        })
+      }
+      const res = await fetch(`/api/calendar?year=${year}&month=${month}`)
+      const json = await res.json()
+      setData(json.data ?? { meetings: [], tasks: [], projects: [] })
+      closeCreate()
+    } finally {
+      setCreating(false)
+    }
   }
 
   const dayEvents = buildDayMap(year, month, data)
@@ -267,7 +324,7 @@ export default function CalendarPage() {
 
         <div className="w-72 shrink-0">
           <Card>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-3">
               <Calendar size={16} className="text-blue-400" />
               <span className="font-semibold text-white text-sm">
                 {selectedDay
@@ -276,12 +333,29 @@ export default function CalendarPage() {
               </span>
             </div>
 
+            {selectedDay !== null && (
+              <div className="flex gap-1.5 mb-4">
+                <button
+                  onClick={() => openCreate('meeting')}
+                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 transition-colors"
+                >
+                  <Plus size={11} /> פגישה
+                </button>
+                <button
+                  onClick={() => openCreate('task')}
+                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-300 transition-colors"
+                >
+                  <Plus size={11} /> משימה
+                </button>
+              </div>
+            )}
+
             {selectedDay === null ? (
               <div className="text-center py-8 text-gray-500 text-sm">
                 לחץ על יום בלוח כדי לראות את האירועים שלו
               </div>
             ) : selectedEvents.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm">
+              <div className="text-center py-6 text-gray-500 text-sm">
                 אין אירועים ביום זה
               </div>
             ) : (
@@ -330,6 +404,71 @@ export default function CalendarPage() {
           </Card>
         </div>
       </div>
+
+      {/* Quick-add modal */}
+      <Modal
+        open={createType !== null}
+        onClose={closeCreate}
+        title={`הוסף ${createType === 'meeting' ? 'פגישה' : 'משימה'} — ${selectedDay} ${HEBREW_MONTHS[month - 1]}`}
+        size="sm"
+      >
+        <form onSubmit={handleCreate} className="space-y-3">
+          {createType === 'meeting' ? (
+            <>
+              <Select
+                label="סוג"
+                options={[
+                  { value: 'פגישה', label: 'פגישה' },
+                  { value: 'שיחה', label: 'שיחה' },
+                ]}
+                value={meetingType}
+                onChange={(e) => setMeetingType(e.target.value)}
+              />
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">סיכום / נושא</label>
+                <textarea
+                  value={meetingSummary}
+                  onChange={(e) => setMeetingSummary(e.target.value)}
+                  rows={2}
+                  placeholder="נושא הפגישה..."
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <Input
+                label="כותרת משימה *"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="מה צריך לעשות?"
+                required
+              />
+              <Select
+                label="עדיפות"
+                options={[
+                  { value: 'LOW', label: 'נמוכה' },
+                  { value: 'MEDIUM', label: 'בינונית' },
+                  { value: 'HIGH', label: 'גבוהה' },
+                ]}
+                value={taskPriority}
+                onChange={(e) => setTaskPriority(e.target.value)}
+              />
+            </>
+          )}
+          <div className="flex gap-2 pt-1">
+            <Button
+              type="submit"
+              loading={creating}
+              disabled={createType === 'task' && !taskTitle}
+              className="flex-1"
+            >
+              הוסף
+            </Button>
+            <Button type="button" variant="secondary" onClick={closeCreate}>ביטול</Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { TrendingUp, TrendingDown, Wallet, FolderOpen, Clock } from 'lucide-react'
+import { TrendingUp, Wallet, FolderOpen, Clock } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 

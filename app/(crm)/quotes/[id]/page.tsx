@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronRight, Trash2, FolderPlus, Copy, Send, CheckCircle, XCircle } from 'lucide-react'
+import { ChevronRight, Trash2, FolderPlus, Copy, Send, CheckCircle, XCircle, MessageCircle } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
@@ -17,7 +17,7 @@ import { PDFExportButton } from '@/components/quotes/PDFExportButton'
 import { formatDate } from '@/lib/utils'
 
 function calcTotal(items: { unitPrice: number; dimension1: number | null; dimension2: number | null }[], discount: number) {
-  const sub = items.reduce((s: number, i: any) => {
+  const sub = items.reduce((s: number, i: { unitPrice: number; dimension1: number | null; dimension2: number | null }) => {
     const d2 = i.dimension2 != null ? i.dimension2 / 100 : 1
     return s + (i.dimension1 ?? 1) * d2 * i.unitPrice
   }, 0)
@@ -35,6 +35,7 @@ const STATUS_OPTIONS = [
 export default function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [quote, setQuote] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -62,6 +63,7 @@ export default function QuoteDetailPage() {
     })
     if (res.ok) {
       const json = await res.json()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuote((prev: any) => ({ ...prev, status: json.data.status }))
     }
   }
@@ -82,6 +84,7 @@ export default function QuoteDetailPage() {
       })
       if (res.ok) {
         const json = await res.json()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setQuote((prev: any) => ({ ...prev, status: json.data.status, validUntil: json.data.validUntil }))
         setActionMsg('ההצעה סומנה כנשלחה')
         setTimeout(() => setActionMsg(''), 3000)
@@ -96,6 +99,7 @@ export default function QuoteDetailPage() {
       body: JSON.stringify({ status: 'APPROVED' }),
     })
     if (res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuote((prev: any) => ({ ...prev, status: 'APPROVED' }))
       setActionMsg('ההצעה אושרה!')
       setTimeout(() => setActionMsg(''), 3000)
@@ -109,6 +113,7 @@ export default function QuoteDetailPage() {
       body: JSON.stringify({ status: 'REJECTED' }),
     })
     if (res.ok) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setQuote((prev: any) => ({ ...prev, status: 'REJECTED' }))
     }
   }
@@ -213,6 +218,16 @@ export default function QuoteDetailPage() {
               />
             </div>
             <PDFExportButton quote={quote} clientId={quote.clientId} />
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`שלום,\nמצורפת הצעת מחיר ${quote.quoteNumber} עבור ${quote.client?.name}.\nסכום: ₪${calcTotal(quote.items ?? [], quote.discount ?? 0).toLocaleString('he-IL', { maximumFractionDigits: 0 })}\nבתוקף עד: ${quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('he-IL') : 'לא הוגדר'}\n\nנשמח לשמוע ממך!`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="שתף בוואטסאפ"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 transition-colors"
+            >
+              <MessageCircle size={13} />
+              ווטסאפ
+            </a>
             <Button variant="secondary" size="sm" onClick={handleDuplicate} loading={duplicating}>
               <Copy size={14} />
               שכפל

@@ -21,7 +21,7 @@ export async function GET(
     })
     if (!quote) return NextResponse.json({ error: 'הצעת מחיר לא נמצאה' }, { status: 404 })
     return NextResponse.json({ data: quote })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת הצעת המחיר' }, { status: 500 })
   }
 }
@@ -40,7 +40,7 @@ export async function PATCH(
       await notify(`הצעת מחיר ${quote.quoteNumber} נדחתה`, 'warning', `quote:${id}`)
     }
     return NextResponse.json({ data: quote })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון הצעת המחיר' }, { status: 500 })
   }
 }
@@ -53,7 +53,7 @@ export async function DELETE(
     const { id } = await params
     await prisma.quote.delete({ where: { id } })
     return NextResponse.json({ data: { success: true } })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת הצעת המחיר' }, { status: 500 })
   }
 }

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       orderBy: { date: 'desc' },
     })
     return NextResponse.json({ data: meetings })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת פגישות' }, { status: 500 })
   }
 }
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       },
     })
     return NextResponse.json({ data: meeting }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת פגישה' }, { status: 500 })
   }
 }
@@ -48,7 +48,7 @@ export async function DELETE(req: NextRequest) {
     const { id } = await req.json()
     await prisma.meeting.delete({ where: { id } })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת פגישה' }, { status: 500 })
   }
 }

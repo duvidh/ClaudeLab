@@ -1,8 +1,7 @@
 'use client'
 
-import { Bell, Menu, Search, CheckCheck, Info, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, FolderKanban } from 'lucide-react'
+import { Bell, Menu, Search, CheckCheck, Info, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, FolderKanban, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 interface Notification {
@@ -56,6 +55,7 @@ function GlobalSearch() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (query.length < 2) { setResults([]); setOpen(false); return }
     const t = setTimeout(async () => {
       setLoading(true)
@@ -112,7 +112,7 @@ function GlobalSearch() {
       )}
       {open && query.length >= 2 && results.length === 0 && !loading && (
         <div className="absolute top-full mt-1.5 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 px-4 py-3">
-          <p className="text-sm text-gray-500 text-center">לא נמצאו תוצאות עבור "{query}"</p>
+          <p className="text-sm text-gray-500 text-center">לא נמצאו תוצאות עבור &quot;{query}&quot;</p>
         </div>
       )}
     </div>
@@ -130,9 +130,16 @@ export function Header({ onMenuOpen }: HeaderProps) {
   const [loading, setLoading] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    fetchUnreadCount()
-  }, [])
+  async function fetchUnreadCount() {
+    try {
+      const res = await fetch('/api/notifications')
+      const json = await res.json()
+      setUnreadCount(json.unreadCount ?? 0)
+    } catch {}
+  }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { void fetchUnreadCount() }, [])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -143,14 +150,6 @@ export function Header({ onMenuOpen }: HeaderProps) {
     if (open) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
-
-  async function fetchUnreadCount() {
-    try {
-      const res = await fetch('/api/notifications')
-      const json = await res.json()
-      setUnreadCount(json.unreadCount ?? 0)
-    } catch {}
-  }
 
   async function openPanel() {
     if (open) { setOpen(false); return }
@@ -187,6 +186,7 @@ export function Header({ onMenuOpen }: HeaderProps) {
   }
 
   function formatRelative(dateStr: string) {
+    // eslint-disable-next-line react-hooks/purity
     const diff = Date.now() - new Date(dateStr).getTime()
     const min = Math.floor(diff / 60000)
     if (min < 1) return 'עכשיו'
@@ -274,8 +274,22 @@ export function Header({ onMenuOpen }: HeaderProps) {
           )}
         </div>
 
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white">
-          מ
+        <div className="relative group">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white cursor-pointer">
+            מ
+          </div>
+          <div className="absolute end-0 top-10 w-36 bg-gray-800 border border-gray-700 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
+            <button
+              onClick={async () => {
+                await fetch('/api/auth/logout', { method: 'POST' })
+                window.location.href = '/login'
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            >
+              <LogOut size={13} />
+              התנתק
+            </button>
+          </div>
         </div>
       </div>
     </header>

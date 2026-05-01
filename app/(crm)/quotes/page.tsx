@@ -21,6 +21,7 @@ const STATUS_OPTIONS = [
 ]
 
 export default function QuotesPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [quotes, setQuotes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
@@ -40,6 +41,7 @@ export default function QuotesPage() {
     }
   }, [statusFilter])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchQuotes() }, [fetchQuotes])
 
   async function handleCreate(data: Record<string, unknown>) {
@@ -104,12 +106,12 @@ function NewQuoteForm({ onSubmit, onCancel }: { onSubmit: (d: Record<string, unk
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch('/api/clients').then(r => r.json()).then(j => setClients((j.data ?? []).map((c: any) => ({ value: c.id, label: c.name }))))
+    fetch('/api/clients').then(r => r.json()).then(j => setClients((j.data ?? []).map((c: { id: string; name: string }) => ({ value: c.id, label: c.name }))))
   }, [])
 
   useEffect(() => {
     if (!clientId) return
-    fetch(`/api/projects?clientId=${clientId}`).then(r => r.json()).then(j => setProjects((j.data ?? []).map((p: any) => ({ value: p.id, label: p.name }))))
+    fetch(`/api/projects?clientId=${clientId}`).then(r => r.json()).then(j => setProjects((j.data ?? []).map((p: { id: string; name: string }) => ({ value: p.id, label: p.name }))))
   }, [clientId])
 
   async function handleSubmit(e: React.FormEvent) {

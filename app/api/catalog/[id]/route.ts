@@ -10,7 +10,7 @@ export async function PATCH(
     const body = await req.json()
     const item = await prisma.catalogItem.update({ where: { id }, data: body })
     return NextResponse.json({ data: item })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון הפריט' }, { status: 500 })
   }
 }
@@ -23,7 +23,7 @@ export async function DELETE(
     const { id } = await params
     await prisma.catalogItem.update({ where: { id }, data: { isActive: false } })
     return NextResponse.json({ data: { success: true } })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בהסרת הפריט' }, { status: 500 })
   }
 }

@@ -9,7 +9,7 @@ export async function GET() {
     })
     const unreadCount = await prisma.notification.count({ where: { isRead: false } })
     return NextResponse.json({ data: notifications, unreadCount })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת התראות' }, { status: 500 })
   }
 }
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const notification = await prisma.notification.create({ data: body })
     return NextResponse.json({ data: notification }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת התראה' }, { status: 500 })
   }
 }
@@ -36,7 +36,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ data: n })
     }
     return NextResponse.json({ error: 'חסר מזהה' }, { status: 400 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון התראה' }, { status: 500 })
   }
 }

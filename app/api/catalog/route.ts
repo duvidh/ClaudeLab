@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ isActive: 'desc' }, { name: 'asc' }],
     })
     return NextResponse.json({ data: items })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת הקטלוג' }, { status: 500 })
   }
 }

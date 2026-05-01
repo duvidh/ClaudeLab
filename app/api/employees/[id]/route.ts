@@ -10,7 +10,7 @@ export async function GET(
     const employee = await prisma.employee.findUnique({ where: { id } })
     if (!employee) return NextResponse.json({ error: 'עובד לא נמצא' }, { status: 404 })
     return NextResponse.json({ data: employee })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת עובד' }, { status: 500 })
   }
 }
@@ -30,7 +30,7 @@ export async function PATCH(
     }
     const employee = await prisma.employee.update({ where: { id }, data })
     return NextResponse.json({ data: employee })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון עובד' }, { status: 500 })
   }
 }
@@ -43,7 +43,7 @@ export async function DELETE(
     const { id } = await params
     await prisma.employee.delete({ where: { id } })
     return NextResponse.json({ data: { success: true } })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת עובד' }, { status: 500 })
   }
 }

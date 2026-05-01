@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       orderBy: { name: 'asc' },
     })
     return NextResponse.json({ data: employees })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה בטעינת עובדים' }, { status: 500 })
   }
 }
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       },
     })
     return NextResponse.json({ data: employee }, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת עובד' }, { status: 500 })
   }
 }

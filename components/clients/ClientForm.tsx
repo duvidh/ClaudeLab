@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { FormField } from '@/components/ui/FormField'
 import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Client } from '@/types'
 
@@ -15,14 +16,6 @@ const CATEGORY_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: 'ACTIVE', label: 'פעיל' },
   { value: 'INACTIVE', label: 'לא פעיל' },
-]
-
-const PAYMENT_METHOD_OPTIONS = [
-  { value: '', label: 'בחר שיטת תשלום' },
-  { value: 'מזומן', label: 'מזומן' },
-  { value: 'העברה בנקאית', label: 'העברה בנקאית' },
-  { value: 'צ\'ק', label: "צ'ק" },
-  { value: 'כרטיס אשראי', label: 'כרטיס אשראי' },
 ]
 
 type ClientFormData = {
@@ -188,8 +181,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
               </div>
             )}
           </div>
-          <div>
-            <label className="text-sm text-gray-300 font-medium block mb-1">עיר</label>
+          <FormField id="city" label="עיר">
             <input
               list="client-form-cities"
               id="city"
@@ -201,7 +193,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
             <datalist id="client-form-cities">
               {lists.cities.map((c) => <option key={c} value={c} />)}
             </datalist>
-          </div>
+          </FormField>
           <Select
             id="category"
             label="קטגוריה"
@@ -268,14 +260,16 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
 
       {/* Notes */}
       <section>
-        <label className="text-sm text-gray-300 font-medium block mb-1">הערות</label>
-        <textarea
-          value={form.notes}
-          onChange={(e) => set('notes', e.target.value)}
-          rows={3}
-          placeholder="הערות כלליות על הלקוח..."
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <FormField id="notes" label="הערות">
+          <textarea
+            id="notes"
+            value={form.notes}
+            onChange={(e) => set('notes', e.target.value)}
+            rows={3}
+            placeholder="הערות כלליות על הלקוח..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </FormField>
       </section>
 
       <div className="flex gap-2 pt-1">
