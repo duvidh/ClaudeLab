@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Phone, Mail, Users2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Phone, Mail, Users2, PowerOff, Power } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -95,6 +95,18 @@ export default function EmployeesPage() {
       body: JSON.stringify(data),
     })
     if (res.ok) { setEditEmployee(null); await fetchEmployees() }
+  }
+
+  async function handleToggleStatus(emp: Employee) {
+    const newStatus = emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+    const res = await fetch(`/api/employees/${emp.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    })
+    if (res.ok) {
+      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, status: newStatus } : e))
+    }
   }
 
   async function handleDelete() {
@@ -221,9 +233,16 @@ export default function EmployeesPage() {
                         <Pencil size={14} />
                       </button>
                       <button
+                        onClick={() => handleToggleStatus(emp)}
+                        className={`p-1.5 transition-colors ${emp.status === 'ACTIVE' ? 'text-gray-500 hover:text-amber-400' : 'text-gray-500 hover:text-green-400'}`}
+                        title={emp.status === 'ACTIVE' ? 'השבת עובד' : 'הפעל עובד'}
+                      >
+                        {emp.status === 'ACTIVE' ? <PowerOff size={14} /> : <Power size={14} />}
+                      </button>
+                      <button
                         onClick={() => setDeleteId(emp.id)}
                         className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
-                        title="מחק"
+                        title="מחק לצמיתות"
                       >
                         <Trash2 size={14} />
                       </button>

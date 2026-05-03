@@ -18,6 +18,7 @@ export async function GET(
         files: true,
         tasks: { orderBy: { createdAt: 'desc' } },
         client: true,
+        assignedTo: { select: { id: true, name: true, position: true } },
       },
     })
     if (!lead) return NextResponse.json({ error: 'ליד לא נמצא' }, { status: 404 })

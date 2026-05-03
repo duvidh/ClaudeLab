@@ -55,12 +55,21 @@ const TABS = [
   { id: 'documents', label: 'מסמכים' },
 ]
 
+type EmployeeOption = { id: string; name: string; position: string | null }
+
 export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
   const [lead, setLead] = useState(initialLead)
   const [activeTab, setActiveTab] = useState(() => {
     try { return localStorage.getItem(`tab-lead-${initialLead.id}`) ?? 'details' } catch { return 'details' }
   })
   const [quotesCount, setQuotesCount] = useState<number | undefined>(undefined)
+  const [employees, setEmployees] = useState<EmployeeOption[]>([])
+
+  useEffect(() => {
+    fetch('/api/employees?status=ACTIVE')
+      .then((r) => r.json())
+      .then((j) => setEmployees(j.data ?? []))
+  }, [])
 
   function handleTabChange(tab: string) {
     setActiveTab(tab)
@@ -98,6 +107,19 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
       setLead((prev: LeadWithRelations) => ({ ...prev, ...json.data }))
       setEditOpen(false)
       router.refresh()
+    }
+  }
+
+  async function handleAssigneeChange(assignedToId: string) {
+    const value = assignedToId || null
+    const res = await fetch(`/api/leads/${lead.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assignedToId: value }),
+    })
+    if (res.ok) {
+      const selected = employees.find((e) => e.id === assignedToId) ?? null
+      setLead((prev: LeadWithRelations) => ({ ...prev, assignedToId: value, assignedTo: selected }))
     }
   }
 
@@ -214,6 +236,25 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
               {lead.nextMeetingDate && (
                 <InfoRow icon={Calendar} label="פגישה הבאה" value={formatDate(lead.nextMeetingDate)} />
               )}
+              {/* Assignee */}
+              <div className="flex items-start gap-2">
+                <Users size={14} className="text-gray-500 mt-1.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500 mb-1">נציג אחראי</p>
+                  <select
+                    value={lead.assignedToId ?? ''}
+                    onChange={(e) => handleAssigneeChange(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">— לא שויך —</option>
+                    {employees.map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name}{emp.position ? ` · ${emp.position}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </Card>
 

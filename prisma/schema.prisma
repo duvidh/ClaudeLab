@@ -20,6 +20,8 @@ model Lead {
   clientType       String    @default("PRIVATE")
   leadSource       String    @default("OTHER")
   assignedRep      String?
+  assignedToId     String?
+  assignedTo       Employee? @relation(fields: [assignedToId], references: [id])
   // status: NEW | CONTACTED | MEETING_SCHEDULED | QUOTE_SENT | WON | LOST | CONVERTED
   status           String    @default("NEW")
   workType         String?
@@ -334,6 +336,8 @@ model Employee {
   notes       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  assignedLeads Lead[]
 }
 
 // ─── Suppliers ───────────────────────────────────────────────────────────────

@@ -148,6 +148,7 @@ export type LeadWithRelations = Lead & {
   files: LeadFile[]
   tasks: Task[]
   client?: Client | null
+  assignedTo?: { id: string; name: string; position: string | null } | null
 }
 
 export type ClientWithRelations = Client & {
