@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const clientId = searchParams.get('clientId')
+    const leadId = searchParams.get('leadId')
     const status = searchParams.get('status')
 
     // Lazily expire quotes past their validUntil date
@@ -25,10 +26,12 @@ export async function GET(req: NextRequest) {
     const quotes = await prisma.quote.findMany({
       where: {
         ...(clientId ? { clientId } : {}),
+        ...(leadId ? { leadId } : {}),
         ...(status ? { status } : {}),
       },
       include: {
         client: { select: { id: true, name: true } },
+        lead: { select: { id: true, fullName: true } },
         project: { select: { id: true, name: true } },
         items: { select: { unitPrice: true, dimension1: true, dimension2: true } },
         _count: { select: { items: true } },
@@ -44,11 +47,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    if (!body.clientId && !body.leadId) {
+      return NextResponse.json({ error: 'יש לשייך הצעת מחיר ללקוח או ליד' }, { status: 400 })
+    }
     const quoteNumber = await generateQuoteNumber()
     const quote = await prisma.quote.create({
       data: { ...body, quoteNumber },
       include: {
         client: true,
+        lead: true,
         project: true,
         items: { include: { catalogItem: true } },
       },

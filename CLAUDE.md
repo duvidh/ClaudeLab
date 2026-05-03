@@ -93,3 +93,9 @@ totalWithVAT   = totalBeforeVAT + vat
 - Hover-reveal action buttons: `opacity-0 group-hover:opacity-100` — requires `group` on the parent `<Card>` or `<tr>`.
 - Use Tailwind logical properties (`ps-`, `pe-`, `ms-`, `me-`) rather than `pl-`/`pr-` when direction matters.
 - Inline status dropdowns (e.g. in `LeadsTable`) use `openStatusId` state + `useRef` + `useEffect` outside-click handler to close on blur.
+
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->

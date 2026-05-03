@@ -3,45 +3,47 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ─── Leads ───────────────────────────────────────────────────────────────────
 
 model Lead {
-  id               String  @id @default(cuid())
+  id               String    @id @default(cuid())
   fullName         String
   primaryPhone     String
   secondaryPhone   String?
   email            String?
   propertyAddress  String?
   city             String?
-  clientType       String  @default("PRIVATE")
-  leadSource       String  @default("OTHER")
+  clientType       String    @default("PRIVATE")
+  leadSource       String    @default("OTHER")
   assignedRep      String?
   // status: NEW | CONTACTED | MEETING_SCHEDULED | QUOTE_SENT | WON | LOST | CONVERTED
-  status           String  @default("NEW")
+  status           String    @default("NEW")
   workType         String?
   needDescription  String?
   estimatedSize    Float?
   budget           Float?
   desiredStartDate DateTime?
   // urgency: LOW | MEDIUM | HIGH
-  urgency          String  @default("MEDIUM")
-  buildingPermit   Boolean @default(false)
+  urgency          String    @default("MEDIUM")
+  buildingPermit   Boolean   @default(false)
   nextMeetingDate  DateTime?
   lossReason       String?
   quoteStatus      String?
   convertedAt      DateTime?
-  entryDate        DateTime @default(now())
+  entryDate        DateTime  @default(now())
   deletedAt        DateTime?
 
-  client   Client?
-  notes    LeadNote[]
-  meetings Meeting[]
-  files    LeadFile[]
-  tasks    Task[]
+  client    Client?
+  notes     LeadNote[]
+  meetings  Meeting[]
+  files     LeadFile[]
+  tasks     Task[]
+  quotes    Quote[]
+  documents Document[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,32 +71,33 @@ model LeadFile {
 // ─── Clients ─────────────────────────────────────────────────────────────────
 
 model Client {
-  id            String   @id @default(cuid())
-  name          String
-  company       String?
-  idNumber      String?
+  id             String    @id @default(cuid())
+  name           String
+  company        String?
+  idNumber       String?
   address        String?
   mailingAddress String?
   city           String?
-  phones         String   @default("[]")
-  email         String?
+  phones         String    @default("[]")
+  email          String?
   // category: PRIVATE | BUSINESS
-  category      String   @default("PRIVATE")
+  category       String    @default("PRIVATE")
   // status: ACTIVE | INACTIVE
-  status        String   @default("ACTIVE")
-  joinDate      DateTime @default(now())
-  leadId        String?  @unique
-  lead          Lead?    @relation(fields: [leadId], references: [id])
-  paymentMethod String?
-  notes         String?
-  deletedAt     DateTime?
+  status         String    @default("ACTIVE")
+  joinDate       DateTime  @default(now())
+  leadId         String?   @unique
+  lead           Lead?     @relation(fields: [leadId], references: [id])
+  paymentMethod  String?
+  notes          String?
+  deletedAt      DateTime?
 
-  projects Project[]
-  quotes   Quote[]
-  invoices Invoice[]
-  meetings Meeting[]
-  tasks    Task[]
-  files    ClientFile[]
+  projects  Project[]
+  quotes    Quote[]
+  invoices  Invoice[]
+  meetings  Meeting[]
+  tasks     Task[]
+  files     ClientFile[]
+  documents Document[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -108,6 +111,21 @@ model ClientFile {
   url       String
   fileType  String?
   createdAt DateTime @default(now())
+}
+
+// ─── Documents (unified file metadata for Leads & Clients) ──────────────────
+
+model Document {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  // fileType: mime type or extension label (e.g. "application/pdf", "image/jpeg")
+  fileType   String?
+  clientId   String?
+  client     Client?  @relation(fields: [clientId], references: [id])
+  leadId     String?
+  lead       Lead?    @relation(fields: [leadId], references: [id])
+  uploadedAt DateTime @default(now())
 }
 
 // ─── Meetings (shared between Leads & Clients) ────────────────────────────────
@@ -127,21 +145,21 @@ model Meeting {
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 model Project {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   name            String
   clientId        String
-  client          Client   @relation(fields: [clientId], references: [id])
+  client          Client    @relation(fields: [clientId], references: [id])
   address         String?
   projectType     String?
   // status: PLANNING | ACTIVE | PAUSED | COMPLETED | CANCELLED
-  status          String   @default("PLANNING")
+  status          String    @default("PLANNING")
   projectManager  String?
   fieldTeam       String?
   startDate       DateTime?
   plannedEndDate  DateTime?
   actualEndDate   DateTime?
-  progressPercent Int      @default(0)
-  contractValue   Float    @default(0)
+  progressPercent Int       @default(0)
+  contractValue   Float     @default(0)
   notes           String?
 
   milestones Milestone[]
@@ -181,8 +199,10 @@ model ProjectFile {
 model Quote {
   id           String    @id @default(cuid())
   quoteNumber  String    @unique
-  clientId     String
-  client       Client    @relation(fields: [clientId], references: [id])
+  clientId     String?
+  client       Client?   @relation(fields: [clientId], references: [id])
+  leadId       String?
+  lead         Lead?     @relation(fields: [leadId], references: [id])
   projectId    String?
   project      Project?  @relation(fields: [projectId], references: [id])
   date         DateTime  @default(now())
@@ -296,22 +316,24 @@ model Task {
 // ─── Employees ───────────────────────────────────────────────────────────────
 
 model Employee {
-  id         String    @id @default(cuid())
-  name       String
+  id          String    @id @default(cuid())
+  name        String
   // role: INTERNAL | EXTERNAL
-  role       String    @default("INTERNAL")
-  position   String?
+  role        String    @default("INTERNAL")
+  // permissions: comma-separated list or JSON string of granted permission keys
+  permissions String?
+  position    String?
   // wageType: MONTHLY | HOURLY | PER_PROJECT
-  wageType   String    @default("MONTHLY")
-  wageAmount Float     @default(0)
+  wageType    String    @default("MONTHLY")
+  wageAmount  Float     @default(0)
   // status: ACTIVE | INACTIVE
-  status     String    @default("ACTIVE")
-  startDate  DateTime?
-  phone      String?
-  email      String?
-  notes      String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  status      String    @default("ACTIVE")
+  startDate   DateTime?
+  phone       String?
+  email       String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 // ─── Suppliers ───────────────────────────────────────────────────────────────
@@ -339,4 +361,12 @@ model Notification {
   isRead        Boolean  @default(false)
   relatedEntity String?
   createdAt     DateTime @default(now())
+}
+
+// ─── App settings (key-value, value is JSON string) ─────────────────────────
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
 }

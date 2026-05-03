@@ -21,6 +21,7 @@ import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatDate, formatCurrency } from '@/lib/utils'
+import { detailTabKey, useUiStore } from '@/lib/store/uiStore'
 import type { ClientFinancials } from '@/lib/calculations'
 import type { Client, Project, Quote, Invoice, Task, Payment, Milestone, Meeting, ClientFile } from '@/types'
 
@@ -55,13 +56,12 @@ interface ClientDetailProps {
 export function ClientDetail({ client: initialClient }: ClientDetailProps) {
   const [client, setClient] = useState(initialClient)
   const [files, setFiles] = useState<ClientFile[]>(initialClient.files)
-  const [activeTab, setActiveTab] = useState(() => {
-    try { return localStorage.getItem(`tab-client-${initialClient.id}`) ?? 'overview' } catch { return 'overview' }
-  })
+  const clientTabKey = detailTabKey('client', client.id)
+  const activeTab = useUiStore((s) => s.detailTabsByKey[clientTabKey] ?? 'overview')
+  const setDetailTab = useUiStore((s) => s.setDetailTab)
 
   function handleTabChange(tab: string) {
-    setActiveTab(tab)
-    try { localStorage.setItem(`tab-client-${initialClient.id}`, tab) } catch {}
+    setDetailTab(clientTabKey, tab)
   }
   const [editOpen, setEditOpen] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)

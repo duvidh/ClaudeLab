@@ -16,7 +16,11 @@ function exportClientsCSV(clients: CsvClient[]) {
   const headers = ['שם', 'חברה', 'טלפון', 'אימייל', 'עיר', 'סטטוס', 'תאריך הצטרפות']
   const rows = clients.map((c) => {
     let phone = ''
-    try { phone = JSON.parse(c.phones)?.[0] ?? '' } catch { phone = c.phones ?? '' }
+    try {
+      phone = c.phones ? String(JSON.parse(c.phones)?.[0] ?? '') : ''
+    } catch {
+      phone = c.phones ?? ''
+    }
     return [
       c.name,
       c.company ?? '',
@@ -24,7 +28,7 @@ function exportClientsCSV(clients: CsvClient[]) {
       c.email ?? '',
       c.city ?? '',
       c.status === 'ACTIVE' ? 'פעיל' : 'לא פעיל',
-      new Date(c.joinDate ?? c.createdAt).toLocaleDateString('he-IL'),
+      new Date(c.joinDate ?? c.createdAt ?? 0).toLocaleDateString('he-IL'),
     ]
   })
   const csv = [headers, ...rows]

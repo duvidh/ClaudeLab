@@ -22,6 +22,7 @@ import {
   CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'דשבורד', icon: LayoutDashboard },
@@ -47,29 +48,37 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const [companyName, setCompanyName] = useState(() => {
-    if (typeof window === 'undefined') return 'BuildCRM'
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) { const d = JSON.parse(stored); if (d.name) return d.name as string }
-    } catch {}
-    return 'BuildCRM'
-  })
-  const [logo, setLogo] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    try { return localStorage.getItem('crm-settings-logo') } catch { return null }
-  })
+  const [companyName, setCompanyName] = useState('BuildCRM')
+  const [logo, setLogo] = useState<string | null>(null)
 
   useEffect(() => {
-    function loadSettings() {
+    let cancelled = false
+
+    async function loadSettings() {
       try {
-        const stored = localStorage.getItem('crm-settings-company')
-        if (stored) { const d = JSON.parse(stored); if (d.name) setCompanyName(d.name) }
-        setLogo(localStorage.getItem('crm-settings-logo'))
-      } catch {}
+        const res = await fetch('/api/settings')
+        const j = await res.json()
+        if (cancelled) return
+        const d = j.data ?? {}
+        const company = d[CRM_SETTING_KEYS.company]
+        if (company && typeof company === 'object' && company !== null && 'name' in company) {
+          const n = (company as { name?: unknown }).name
+          if (typeof n === 'string' && n) setCompanyName(n)
+        }
+        const logoVal = d[CRM_SETTING_KEYS.logo]
+        if (typeof logoVal === 'string') setLogo(logoVal)
+        else setLogo(null)
+      } catch {
+        /* keep previous */
+      }
     }
+
+    loadSettings()
     window.addEventListener('crm-settings-changed', loadSettings)
-    return () => window.removeEventListener('crm-settings-changed', loadSettings)
+    return () => {
+      cancelled = true
+      window.removeEventListener('crm-settings-changed', loadSettings)
+    }
   }, [])
 
   return (

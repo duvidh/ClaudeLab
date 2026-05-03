@@ -3,6 +3,8 @@
 import { Bell, Menu, Search, CheckCheck, Info, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, FolderKanban, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
+import { useUiStore } from '@/lib/store/uiStore'
 
 interface Notification {
   id: string
@@ -41,36 +43,37 @@ const RESULT_LABEL: Record<string, string> = { lead: 'ליד', client: 'לקוח
 function GlobalSearch() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
-  const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const globalSearchOpen = useUiStore((s) => s.globalSearchOpen)
+  const setGlobalSearchOpen = useUiStore((s) => s.setGlobalSearchOpen)
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setGlobalSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
-  }, [])
+  }, [setGlobalSearchOpen])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (query.length < 2) { setResults([]); setOpen(false); return }
+    if (query.length < 2) { setResults([]); setGlobalSearchOpen(false); return }
     const t = setTimeout(async () => {
       setLoading(true)
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
         const json = await res.json()
         setResults(json.data ?? [])
-        setOpen(true)
+        setGlobalSearchOpen(true)
       } finally { setLoading(false) }
     }, 250)
     return () => clearTimeout(t)
-  }, [query])
+  }, [query, setGlobalSearchOpen])
 
   function handleSelect(href: string) {
-    setOpen(false)
+    setGlobalSearchOpen(false)
     setQuery('')
     router.push(href)
   }
@@ -86,10 +89,10 @@ function GlobalSearch() {
         placeholder="חיפוש לידים, לקוחות, פרויקטים..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => results.length > 0 && setOpen(true)}
+        onFocus={() => results.length > 0 && setGlobalSearchOpen(true)}
         className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pr-9 pl-3 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
       />
-      {open && results.length > 0 && (
+      {globalSearchOpen && results.length > 0 && (
         <div className="absolute top-full mt-1.5 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
           {results.map((r) => {
             const Icon = RESULT_ICON[r.type] ?? Users
@@ -110,7 +113,7 @@ function GlobalSearch() {
           })}
         </div>
       )}
-      {open && query.length >= 2 && results.length === 0 && !loading && (
+      {globalSearchOpen && query.length >= 2 && results.length === 0 && !loading && (
         <div className="absolute top-full mt-1.5 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 px-4 py-3">
           <p className="text-sm text-gray-500 text-center">לא נמצאו תוצאות עבור &quot;{query}&quot;</p>
         </div>
@@ -280,9 +283,8 @@ export function Header({ onMenuOpen }: HeaderProps) {
           </div>
           <div className="absolute end-0 top-10 w-36 bg-gray-800 border border-gray-700 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
             <button
-              onClick={async () => {
-                await fetch('/api/auth/logout', { method: 'POST' })
-                window.location.href = '/login'
+              onClick={() => {
+                void signOut({ callbackUrl: '/login' })
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
             >

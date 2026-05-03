@@ -12,6 +12,7 @@ export async function GET(
       where: { id },
       include: {
         client: true,
+        lead: true,
         project: true,
         items: {
           include: { catalogItem: true },

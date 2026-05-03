@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, Search } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { calcLinePrice, calcElementCost, calcProfitPercent, calcQuoteSummary } from '@/lib/calculations'
@@ -21,11 +21,22 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
   const [items, setItems] = useState<ItemRow[]>(initialItems)
   const [discount, setDiscount] = useState(initialDiscount)
   const [saving, setSaving] = useState<string | null>(null)
+  
+  // הוספנו סטייט לקטלוג המלא כדי שהחיפוש יהיה מיידי
+  const [fullCatalog, setFullCatalog] = useState<CatalogItem[]>([])
   const [catalogSearch, setCatalogSearch] = useState('')
   const [catalogResults, setCatalogResults] = useState<CatalogItem[]>([])
-  const [searchingFor, setSearchingFor] = useState<string | null>(null) // item id being searched
+  const [searchingFor, setSearchingFor] = useState<string | null>(null)
 
   const summary = calcQuoteSummary(items, discount)
+
+  // טעינת כל הקטלוג פעם אחת כשהעמוד עולה
+  useEffect(() => {
+    fetch('/api/catalog')
+      .then(r => r.json())
+      .then(j => setFullCatalog(j.data ?? []))
+      .catch(console.error)
+  }, [])
 
   function updateItems(updated: ItemRow[]) {
     setItems(updated)
@@ -40,6 +51,8 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productName: 'פריט חדש',
+          category: '',
+          unit: '',
           unitPrice: 0,
           materialsCost: 0,
           transportCost: 0,
@@ -88,25 +101,33 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
     }
   }
 
-  async function searchCatalog(query: string) {
+  // פונקציית חיפוש חדשה ומיידית מהזיכרון המקומי
+  function searchCatalog(query: string) {
     setCatalogSearch(query)
-    if (query.length < 2) { setCatalogResults([]); return }
-    const res = await fetch(`/api/catalog?search=${encodeURIComponent(query)}`)
-    if (res.ok) {
-      const json = await res.json()
-      setCatalogResults(json.data ?? [])
+    if (query.trim() === '') { 
+      setCatalogResults([])
+      return 
     }
+    const lowerQuery = query.toLowerCase()
+    const results = fullCatalog.filter(cat => 
+      cat.name.toLowerCase().includes(lowerQuery) || 
+      (cat.sku && cat.sku.toLowerCase().includes(lowerQuery)) ||
+      (cat.category && cat.category.toLowerCase().includes(lowerQuery))
+    )
+    setCatalogResults(results)
   }
 
+  // החלת הפריט והכנסת הקטגוריה והיחידה בצורה אגרסיבית
   async function applyCatalogItem(row: ItemRow, catalogItem: CatalogItem) {
     const updatedRow: Partial<ItemRow> = {
       catalogItemId: catalogItem.id,
       productName: catalogItem.name,
-      category: catalogItem.category ?? '',
-      unit: catalogItem.unit ?? '',
-      unitPrice: catalogItem.salePrice,
-      materialsCost: catalogItem.selfCost,
+      category: catalogItem.category || '',
+      unit: catalogItem.unit || '',
+      unitPrice: catalogItem.salePrice || 0,
+      materialsCost: catalogItem.selfCost || 0,
     }
+    
     const updated = items.map((i) => i.id === row.id ? { ...i, ...updatedRow } : i)
     updateItems(updated)
     setSearchingFor(null)
@@ -127,7 +148,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
 
   return (
     <div>
-      {/* Items table */}
       <div className="overflow-x-auto rounded-xl border border-gray-700 mb-4">
         <table className="w-full text-xs">
           <thead>
@@ -167,7 +187,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                 <tr key={item.id} className={`hover:bg-gray-800/30 ${isSaving ? 'opacity-60' : ''}`}>
                   <td className="px-2 py-1.5 text-gray-500 text-center">{idx + 1}</td>
 
-                  {/* Product name + catalog search */}
                   <td className="px-2 py-1.5 relative">
                     {searchingFor === item.id ? (
                       <div className="relative">
@@ -233,7 +252,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                     <EditableCell value={item.unitPrice.toString()} onSave={(v) => updateField(item, 'unitPrice', v)} type="number" />
                   </td>
 
-                  {/* Computed line price */}
                   <td className="px-2 py-1.5 bg-blue-900/10 font-semibold text-blue-300 text-center">
                     {linePrice > 0 ? formatCurrency(linePrice) : '—'}
                   </td>
@@ -252,7 +270,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                     {elementCost > 0 ? formatCurrency(elementCost) : '—'}
                   </td>
 
-                  {/* Profit % */}
                   <td className={`px-2 py-1.5 text-center font-semibold bg-green-900/10 ${profitPct >= 20 ? 'text-green-400' : profitPct >= 0 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {linePrice > 0 ? `${profitPct.toFixed(1)}%` : '—'}
                   </td>
@@ -273,7 +290,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
         </table>
       </div>
 
-      {/* Add row button */}
       <button
         onClick={addRow}
         disabled={saving === 'new'}
@@ -283,18 +299,23 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
         הוסף שורה
       </button>
 
-      {/* Summary */}
       <div className="flex justify-end">
         <div className="w-80 bg-gray-800 border border-gray-700 rounded-xl p-4 space-y-2">
           <SummaryRow label='סה"כ לפני הנחה' value={formatCurrency(summary.subtotal)} />
 
-          {/* Discount */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-400">הנחה (₪)</span>
             <input
               type="number"
               value={discount}
               onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+              onBlur={() => {
+                fetch(`/api/quotes/${quoteId}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ discount }),
+                })
+              }}
               className="w-24 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white text-left focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
@@ -312,8 +333,6 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
     </div>
   )
 }
-
-// ─── Inline editable cell ────────────────────────────────────────────────────
 
 function EditableCell({
   value,

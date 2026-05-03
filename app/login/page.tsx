@@ -1,8 +1,10 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { HardHat, Eye, EyeOff, Lock } from 'lucide-react'
+import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
 
 function LoginForm() {
   const router = useRouter()
@@ -18,18 +20,18 @@ function LoginForm() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+      const result = await signIn('credentials', {
+        password,
+        redirect: false,
       })
-      if (res.ok) {
+      if (result?.error) {
+        setError('סיסמה שגויה')
+      } else if (result?.ok) {
         const from = searchParams.get('from') ?? '/dashboard'
         router.push(from)
         router.refresh()
       } else {
-        const json = await res.json()
-        setError(json.error ?? 'שגיאת כניסה')
+        setError('שגיאת כניסה')
       }
     } catch {
       setError('שגיאת חיבור לשרת')
@@ -84,14 +86,27 @@ function LoginForm() {
 }
 
 function CompanyName() {
-  const [name] = useState(() => {
-    if (typeof window === 'undefined') return 'CRM קבלנות'
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) { const p = JSON.parse(stored); if (p.name) return p.name as string }
-    } catch {}
-    return 'CRM קבלנות'
-  })
+  const [name, setName] = useState('CRM קבלנות')
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/settings')
+        const j = await res.json()
+        if (cancelled) return
+        const company = j.data?.[CRM_SETTING_KEYS.company]
+        if (company && typeof company === 'object' && company !== null && 'name' in company) {
+          const n = (company as { name?: unknown }).name
+          if (typeof n === 'string' && n) setName(n)
+        }
+      } catch {
+        /* default title */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   return <h1 className="text-2xl font-bold text-white">{name}</h1>
 }
 

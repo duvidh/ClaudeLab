@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -51,6 +51,7 @@ const TABS = [
   { id: 'activity', label: 'פעילות' },
   { id: 'notes', label: 'הערות' },
   { id: 'meetings', label: 'פגישות/שיחות' },
+  { id: 'quotes', label: 'הצעות מחיר' },
   { id: 'documents', label: 'מסמכים' },
 ]
 
@@ -59,6 +60,7 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
   const [activeTab, setActiveTab] = useState(() => {
     try { return localStorage.getItem(`tab-lead-${initialLead.id}`) ?? 'details' } catch { return 'details' }
   })
+  const [quotesCount, setQuotesCount] = useState<number | undefined>(undefined)
 
   function handleTabChange(tab: string) {
     setActiveTab(tab)
@@ -78,6 +80,8 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
         ? lead.notes.length
         : t.id === 'meetings'
         ? lead.meetings.length
+        : t.id === 'quotes'
+        ? quotesCount
         : t.id === 'documents'
         ? (lead.files?.length ?? 0)
         : undefined,
@@ -252,6 +256,10 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
         <MeetingsTab leadId={lead.id} initialMeetings={lead.meetings} />
       )}
 
+      {activeTab === 'quotes' && (
+        <LeadQuotesTab leadId={lead.id} onLoad={setQuotesCount} />
+      )}
+
       {activeTab === 'documents' && (
         <LeadFilesTab leadId={lead.id} initialFiles={lead.files ?? []} />
       )}
@@ -316,6 +324,89 @@ function InfoRow({
           <p className="text-sm text-gray-200">{value}</p>
         )}
       </div>
+    </div>
+  )
+}
+
+function LeadQuotesTab({ leadId, onLoad }: { leadId: string; onLoad: (count: number) => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [quotes, setQuotes] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/quotes?leadId=${leadId}`)
+      .then((r) => r.json())
+      .then((j) => {
+        const data = j.data ?? []
+        setQuotes(data)
+        onLoad(data.length)
+        setLoading(false)
+      })
+  }, [leadId, onLoad])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex justify-end mb-3">
+        <Link href={`/quotes/new?leadId=${leadId}`}>
+          <Button size="sm" className="gap-1.5">
+            <Plus size={14} />
+            הצעת מחיר חדשה
+          </Button>
+        </Link>
+      </div>
+
+      {quotes.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-gray-500 text-sm mb-3">אין הצעות מחיר עדיין</p>
+          <Link href={`/quotes/new?leadId=${leadId}`}>
+            <Button size="sm" variant="secondary">
+              <Plus size={14} />
+              צור הצעה ראשונה
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-700">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-800/60 border-b border-gray-700">
+                <th className="px-4 py-3 font-semibold text-gray-400 text-right">מספר הצעה</th>
+                <th className="px-4 py-3 font-semibold text-gray-400 text-right">תאריך</th>
+                <th className="px-4 py-3 font-semibold text-gray-400 text-right">תוקף עד</th>
+                <th className="px-4 py-3 font-semibold text-gray-400 text-right">סטטוס</th>
+                <th className="px-4 py-3 font-semibold text-gray-400 text-right">גרסה</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-800">
+              {quotes.map((quote) => (
+                <tr key={quote.id} className="hover:bg-gray-800/40">
+                  <td className="px-4 py-3 font-medium text-blue-400">
+                    <Link href={`/quotes/${quote.id}`} className="hover:underline">
+                      {quote.quoteNumber}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-gray-400">{formatDate(quote.date)}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {quote.validUntil ? formatDate(quote.validUntil) : '—'}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge type="quote" value={quote.status} />
+                  </td>
+                  <td className="px-4 py-3 text-gray-400">v{quote.version}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -633,7 +724,7 @@ function LeadActivityFeed({ lead }: { lead: LeadWithRelations }) {
       title: 'משימה נוצרה',
       detail: task.title,
       date: task.createdAt,
-      author: task.assignedTo,
+      author: task.assignedTo ?? undefined,
     })
   }
 

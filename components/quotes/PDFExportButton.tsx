@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { FileDown, Save, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
 
 type QuoteForPDF = {
   quoteNumber: string
@@ -37,14 +38,26 @@ export function PDFExportButton({ quote, clientId }: { quote: QuoteForPDF; clien
   const [QuotePDFDocument, setQuotePDFDocument] = useState<any>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pdfLib, setPdfLib] = useState<any>(null)
-  const [companyName] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) return JSON.parse(stored).name ?? ''
-    } catch {}
-    return ''
-  })
+  const [companyName, setCompanyName] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/settings')
+        const j = await res.json()
+        if (cancelled) return
+        const company = j.data?.[CRM_SETTING_KEYS.company]
+        if (company && typeof company === 'object' && company !== null && 'name' in company) {
+          const n = (company as { name?: unknown }).name
+          if (typeof n === 'string') setCompanyName(n)
+        }
+      } catch {
+        /* empty */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
   const [saving, setSaving] = useState(false)
   const [savedDoc, setSavedDoc] = useState(false)
 

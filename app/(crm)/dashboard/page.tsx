@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { formatCurrency, formatDate, timeAgo } from '@/lib/utils'
 import { LEAD_STATUS_LABELS } from '@/types'
+import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
 
 type FinanceSummary = {
   totalRevenue: number
@@ -133,20 +134,14 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [finData, setFinData] = useState<FinanceSummary | null>(null)
   const [loading, setLoading] = useState(true)
-  const [companyName] = useState(() => {
-    if (typeof window === 'undefined') return ''
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) { const p = JSON.parse(stored); if (p.name) return p.name as string }
-    } catch {}
-    return ''
-  })
+  const [companyName, setCompanyName] = useState('')
 
   useEffect(() => {
     Promise.all([
       fetch('/api/dashboard').then((r) => r.json()),
       fetch('/api/finance').then((r) => r.json()).catch(() => null),
-    ]).then(([dash, fin]) => {
+      fetch('/api/settings').then((r) => r.json()).catch(() => null),
+    ]).then(([dash, fin, settings]) => {
       setData(dash.data)
       if (fin?.data) {
         setFinData({
@@ -154,6 +149,11 @@ export default function DashboardPage() {
           totalContracts: fin.data.totalContracts,
           outstanding: fin.data.outstanding,
         })
+      }
+      const company = settings?.data?.[CRM_SETTING_KEYS.company]
+      if (company && typeof company === 'object' && company !== null && 'name' in company) {
+        const n = (company as { name?: unknown }).name
+        if (typeof n === 'string') setCompanyName(n)
       }
       setLoading(false)
     })

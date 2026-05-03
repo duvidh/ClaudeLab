@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
 
 // ─── Editable list component ───────────────────────────────────────────────
 
@@ -80,19 +81,34 @@ const DEFAULT_COMPANY = {
 }
 
 function CompanyTab() {
-  const [form, setForm] = useState(() => {
-    if (typeof window === 'undefined') return DEFAULT_COMPANY
-    try {
-      const stored = localStorage.getItem('crm-settings-company')
-      if (stored) return { ...DEFAULT_COMPANY, ...JSON.parse(stored) }
-    } catch {}
-    return DEFAULT_COMPANY
-  })
-  const [logo, setLogo] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null
-    try { return localStorage.getItem('crm-settings-logo') } catch { return null }
-  })
+  const [form, setForm] = useState(DEFAULT_COMPANY)
+  const [logo, setLogo] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/settings', { cache: 'no-store' })
+        const j = await res.json()
+        if (cancelled) return
+        const d = j.data ?? {}
+        const company = d[CRM_SETTING_KEYS.company]
+        if (company && typeof company === 'object' && !Array.isArray(company)) {
+          setForm({ ...DEFAULT_COMPANY, ...company })
+        }
+        const logoVal = d[CRM_SETTING_KEYS.logo]
+        if (typeof logoVal === 'string') setLogo(logoVal)
+        else setLogo(null)
+      } catch {
+        /* keep defaults */
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   function set(k: keyof typeof form, v: string) {
     setForm((p) => ({ ...p, [k]: v }))
@@ -108,14 +124,29 @@ function CompanyTab() {
     setSaved(false)
   }
 
-  function save() {
-    localStorage.setItem('crm-settings-company', JSON.stringify(form))
-    if (logo) localStorage.setItem('crm-settings-logo', logo)
-    else localStorage.removeItem('crm-settings-logo')
-    // Notify sidebar to re-read settings
+  async function save() {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        settings: {
+          [CRM_SETTING_KEYS.company]: form,
+          [CRM_SETTING_KEYS.logo]: logo,
+        },
+      }),
+    })
+    if (!res.ok) return
     window.dispatchEvent(new Event('crm-settings-changed'))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16 max-w-lg">
+        <div className="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -189,25 +220,53 @@ const DEFAULT_LISTS = {
 }
 
 function ListsTab() {
-  const [lists, setLists] = useState<typeof DEFAULT_LISTS>(() => {
-    if (typeof window === 'undefined') return DEFAULT_LISTS
-    try {
-      const stored = localStorage.getItem('crm-settings-lists')
-      if (stored) return { ...DEFAULT_LISTS, ...JSON.parse(stored) }
-    } catch {}
-    return DEFAULT_LISTS
-  })
+  const [lists, setLists] = useState(DEFAULT_LISTS)
+  const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/settings', { cache: 'no-store' })
+        const j = await res.json()
+        if (cancelled) return
+        const raw = j.data?.[CRM_SETTING_KEYS.lists]
+        if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+          setLists({ ...DEFAULT_LISTS, ...raw })
+        }
+      } catch {
+        /* keep defaults */
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   function setList(key: keyof typeof DEFAULT_LISTS, items: string[]) {
     setLists((p) => ({ ...p, [key]: items }))
     setSaved(false)
   }
 
-  function save() {
-    localStorage.setItem('crm-settings-lists', JSON.stringify(lists))
+  async function save() {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings: { [CRM_SETTING_KEYS.lists]: lists } }),
+    })
+    if (!res.ok) return
+    window.dispatchEvent(new Event('crm-settings-changed'))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16 max-w-xl">
+        <div className="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
