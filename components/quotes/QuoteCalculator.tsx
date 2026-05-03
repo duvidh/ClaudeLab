@@ -189,32 +189,9 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
 
                   <td className="px-2 py-1.5 relative">
                     {searchingFor === item.id ? (
-                      <div className="relative">
-                        <div className="flex items-center gap-1 bg-gray-700 border border-blue-500 rounded px-1.5 py-1">
-                          <Search size={11} className="text-gray-400 shrink-0" />
-                          <input
-                            autoFocus
-                            value={catalogSearch}
-                            onChange={(e) => searchCatalog(e.target.value)}
-                            onBlur={() => setTimeout(() => { setSearchingFor(null); setCatalogResults([]) }, 200)}
-                            placeholder="חיפוש בקטלוג..."
-                            className="bg-transparent flex-1 outline-none text-white text-xs placeholder:text-gray-500"
-                          />
-                        </div>
-                        {catalogResults.length > 0 && (
-                          <div className="absolute top-full right-0 z-20 w-64 bg-gray-800 border border-gray-600 rounded-lg shadow-xl mt-0.5 max-h-48 overflow-y-auto">
-                            {catalogResults.map((cat) => (
-                              <button
-                                key={cat.id}
-                                onMouseDown={() => applyCatalogItem(item, cat)}
-                                className="w-full text-right px-3 py-2 hover:bg-gray-700 flex items-center justify-between"
-                              >
-                                <span className="text-xs text-white">{cat.name}</span>
-                                <span className="text-xs text-gray-400">{formatCurrency(cat.salePrice)}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-1 bg-gray-700/60 border border-blue-500/50 rounded px-1.5 py-0.5">
+                        <Search size={11} className="text-blue-400 shrink-0" />
+                        <span className="text-xs text-blue-300 truncate">{item.productName || 'מחפש...'}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-1 group/cell">
@@ -223,7 +200,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                           onSave={(v) => updateField(item, 'productName', v)}
                         />
                         <button
-                          onClick={() => setSearchingFor(item.id)}
+                          onClick={() => { setSearchingFor(item.id); setCatalogSearch(''); setCatalogResults([]) }}
                           className="opacity-0 group-hover/cell:opacity-100 text-gray-500 hover:text-blue-400 shrink-0 transition-opacity"
                           title="חפש בקטלוג"
                         >
@@ -289,6 +266,60 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
           </tbody>
         </table>
       </div>
+
+      {/* ── Catalog search panel ──────────────────────────────────────────────
+          Rendered OUTSIDE the overflow-x-auto table wrapper so the results
+          are never clipped by the scroll container's implicit overflow-y:auto. */}
+      {searchingFor && (
+        <div className="mb-4 border border-blue-500/40 bg-gray-800/90 rounded-xl p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Search size={13} className="text-blue-400 shrink-0" />
+            <span className="text-xs text-gray-400 flex-1 truncate">
+              חיפוש עבור:{' '}
+              <span className="text-white font-medium">
+                {items.find((i) => i.id === searchingFor)?.productName || 'פריט'}
+              </span>
+            </span>
+            <button
+              onClick={() => { setSearchingFor(null); setCatalogSearch(''); setCatalogResults([]) }}
+              className="text-gray-500 hover:text-gray-300 transition-colors text-sm leading-none"
+              title="סגור חיפוש"
+            >
+              ✕
+            </button>
+          </div>
+          <input
+            autoFocus
+            value={catalogSearch}
+            onChange={(e) => searchCatalog(e.target.value)}
+            placeholder='חפש לפי שם, מק"ט או קטגוריה...'
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {catalogSearch.trim() !== '' && catalogResults.length === 0 && (
+            <p className="text-xs text-gray-500 text-center py-3">לא נמצאו תוצאות</p>
+          )}
+          {catalogResults.length > 0 && (
+            <div className="mt-2 max-h-52 overflow-y-auto rounded-lg border border-gray-700 divide-y divide-gray-700">
+              {catalogResults.map((cat) => {
+                const row = items.find((i) => i.id === searchingFor)
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => row && applyCatalogItem(row, cat)}
+                    className="w-full text-right px-3 py-2.5 hover:bg-gray-700 flex items-center justify-between transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-white truncate">{cat.name}</p>
+                      <p className="text-xs text-gray-500">{cat.sku} · {cat.category ?? '—'} · {cat.unit ?? '—'}</p>
+                    </div>
+                    <span className="text-xs text-blue-300 shrink-0 ms-3">{formatCurrency(cat.salePrice)}</span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <button
         onClick={addRow}

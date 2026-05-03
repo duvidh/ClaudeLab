@@ -4,7 +4,7 @@ import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/rendere
 import type { Style } from '@react-pdf/types'
 import { calcLinePrice, calcQuoteSummary } from '@/lib/calculations'
 
-// הפונטים המקומיים שלנו שעובדים פיקס!
+// הפונטים המקומיים שלנו
 Font.register({
   family: 'Heebo',
   fonts: [
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    flexDirection: 'row-reverse', // מיישר את חברת הבנייה לימין ואת פרטי ההצעה לשמאל
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     marginBottom: 24,
     paddingBottom: 16,
@@ -44,19 +44,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  clientRow: { flexDirection: 'row-reverse', gap: 4, marginBottom: 2 }, // מיישר את "שם:" לימין ואת הטקסט לשמאל
+  clientRow: { flexDirection: 'row-reverse', gap: 4, marginBottom: 2 },
   clientLabel: { fontSize: 9, color: '#6B7280', width: 60, textAlign: 'right' },
   clientValue: { fontSize: 9, color: '#111827', textAlign: 'right' },
   table: { width: '100%' },
   tableHeader: {
-    flexDirection: 'row-reverse', // עמודת מס' סידורי עוברת לימין
+    flexDirection: 'row-reverse',
     backgroundColor: '#1E3A5F',
     padding: '6 4',
     borderRadius: 2,
   },
   tableHeaderCell: { color: '#FFFFFF', fontSize: 8, fontWeight: 700, textAlign: 'right' },
   tableRow: {
-    flexDirection: 'row-reverse', // השורות בטבלה מימין לשמאל
+    flexDirection: 'row-reverse',
     padding: '5 4',
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   colUnit: { width: '8%' },
   colPrice: { width: '17%' },
   colLine: { width: '18%' },
-  summarySection: { marginTop: 16, flexDirection: 'row-reverse', justifyContent: 'flex-end' }, // שומר את קוביית הסיכום בצד שמאל של הדף
+  summarySection: { marginTop: 16, flexDirection: 'row-reverse', justifyContent: 'flex-end' },
   summaryBox: {
     width: 200,
     borderWidth: 1,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   summaryRow: {
-    flexDirection: 'row-reverse', // המילה "הנחה" לימין, הסכום לשמאל
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     padding: '5 10',
     borderBottomWidth: 1,
@@ -149,7 +149,9 @@ type QuoteData = {
   discount: number
   paymentTerms?: string | null
   notes?: string | null
-  client: { name: string; address?: string | null; email?: string | null }
+  // מעדכנים את הטיפוסים כדי שיתמכו גם בלקוח וגם בליד
+  client?: { name: string; address?: string | null; email?: string | null } | null
+  lead?: { fullName: string; email?: string | null } | null
   project?: { name: string } | null
   items: QuoteItem[]
 }
@@ -160,6 +162,11 @@ function fmtDate(d: string) {
 
 export function QuotePDFDocument({ quote, companyName }: { quote: QuoteData; companyName?: string }) {
   const summary = calcQuoteSummary(quote.items, quote.discount)
+
+  // שליפת הנתונים בצורה בטוחה: אם יש לקוח ניקח ממנו, אם אין נחפש בליד
+  const targetName = quote.client?.name || quote.lead?.fullName || 'לקוח מזדמן'
+  const targetEmail = quote.client?.email || quote.lead?.email
+  const targetAddress = quote.client?.address
 
   return (
     <Document>
@@ -185,18 +192,18 @@ export function QuotePDFDocument({ quote, companyName }: { quote: QuoteData; com
           <View style={styles.clientBox}>
             <View style={styles.clientRow}>
               <Text style={styles.clientLabel}>שם:</Text>
-              <Text style={styles.clientValue}>{quote.client.name}</Text>
+              <Text style={styles.clientValue}>{targetName}</Text>
             </View>
-            {quote.client.address && (
+            {targetAddress && (
               <View style={styles.clientRow}>
                 <Text style={styles.clientLabel}>כתובת:</Text>
-                <Text style={styles.clientValue}>{quote.client.address}</Text>
+                <Text style={styles.clientValue}>{targetAddress}</Text>
               </View>
             )}
-            {quote.client.email && (
+            {targetEmail && (
               <View style={styles.clientRow}>
                 <Text style={styles.clientLabel}>אימייל:</Text>
-                <Text style={styles.clientValue}>{quote.client.email}</Text>
+                <Text style={styles.clientValue}>{targetEmail}</Text>
               </View>
             )}
             {quote.project && (
