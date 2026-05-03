@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
-  secret: process.env.AUTH_SECRET, // וידוא אבטחה מוחלט מול ורסל
+  secret: process.env.AUTH_SECRET,
   providers: [
     Credentials({
       credentials: {
@@ -13,7 +13,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const expected = process.env.ADMIN_PASSWORD
         if (!expected || credentials?.password !== expected) return null
         
-        // החלפתי את 'מנהל' לאנגלית. עברית בעוגיות רשת גורמת לפעמים לקריסה של הטוקן
         return { id: 'admin', name: 'Admin' } 
       },
     }),
@@ -23,10 +22,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   session: {
     strategy: 'jwt',
-    maxAge: 7 * 24 * 60 * 60, // שבוע
+    maxAge: 7 * 24 * 60 * 60,
   },
   callbacks: {
-    // אלו הפונקציות שוודאות שהשרת באמת זוכר אותך אחרי רענון הדף!
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
@@ -35,7 +33,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id
+        // שתי המילים שהוספנו פה פותרות את השגיאה של ורסל
+        session.user.id = token.id as string 
       }
       return session
     }
