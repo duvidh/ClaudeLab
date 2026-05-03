@@ -19,6 +19,8 @@ export async function GET() {
       paymentsThisMonth,
       paymentsLast6Months,
       recentLeads,
+      activeEmployeeCount,
+      recentActivity,
     ] = await Promise.all([
       // Lead counts grouped by status
       prisma.lead.groupBy({ by: ['status'], where: { deletedAt: null }, _count: { id: true } }),
@@ -75,6 +77,22 @@ export async function GET() {
           createdAt: true,
         },
       }),
+      // Active employee count
+      prisma.employee.count({ where: { status: 'ACTIVE' } }),
+      // Last 10 activity log entries
+      prisma.activityLog.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          action: true,
+          description: true,
+          createdAt: true,
+          employee: { select: { id: true, name: true } },
+          lead: { select: { id: true, fullName: true } },
+          client: { select: { id: true, name: true } },
+        },
+      }),
     ])
 
     const activeProjectCount = activeProjects.length
@@ -118,6 +136,10 @@ export async function GET() {
           monthly: monthlyRevenue,
         },
         recentLeads,
+        employees: {
+          active: activeEmployeeCount,
+        },
+        recentActivity,
       },
     })
   } catch (error) {

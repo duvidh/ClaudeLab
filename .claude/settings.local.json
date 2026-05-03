@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-Process *)",
+      "Bash(mkdir -p \"prisma/migrations/20260503150000_add_lead_assignment\")",
+      "Bash(cat)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(mkdir -p \"prisma/migrations/20260503160000_sprint4_tasks_activities\")"
+    ]
+  }
+}

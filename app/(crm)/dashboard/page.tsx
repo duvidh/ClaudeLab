@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   Users, FolderKanban, CheckSquare, TrendingUp,
   AlertTriangle, ArrowLeft, Clock, DollarSign,
+  UserCheck, Phone, StickyNote, RefreshCw, ListTodo, Activity, Cpu,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card } from '@/components/ui/Card'
@@ -12,6 +13,16 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { formatCurrency, formatDate, timeAgo } from '@/lib/utils'
 import { LEAD_STATUS_LABELS } from '@/types'
 import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
+
+type ActivityEntry = {
+  id: string
+  action: string
+  description: string
+  createdAt: string
+  employee: { id: string; name: string } | null
+  lead: { id: string; fullName: string } | null
+  client: { id: string; name: string } | null
+}
 
 type FinanceSummary = {
   totalRevenue: number
@@ -61,6 +72,10 @@ type DashboardData = {
     city: string | null
     createdAt: string
   }>
+  employees: {
+    active: number
+  }
+  recentActivity: ActivityEntry[]
 }
 
 const LEAD_PIPELINE_ORDER = ['NEW', 'CONTACTED', 'MEETING_SCHEDULED', 'QUOTE_SENT', 'WON', 'LOST']
@@ -91,6 +106,36 @@ const PRIORITY_COLOR: Record<string, string> = {
   HIGH: 'text-red-400',
   MEDIUM: 'text-yellow-400',
   LOW: 'text-gray-400',
+}
+
+const ACTIVITY_ACTION_LABEL: Record<string, string> = {
+  NOTE: 'הערה',
+  CALL: 'שיחה',
+  STATUS_CHANGE: 'שינוי סטטוס',
+  TASK_CREATED: 'משימה נוצרה',
+  SYSTEM: 'מערכת',
+  OTHER: 'אחר',
+}
+
+const ACTIVITY_ACTION_COLOR: Record<string, string> = {
+  NOTE: 'bg-blue-500/20 text-blue-300',
+  CALL: 'bg-green-500/20 text-green-300',
+  STATUS_CHANGE: 'bg-purple-500/20 text-purple-300',
+  TASK_CREATED: 'bg-yellow-500/20 text-yellow-300',
+  SYSTEM: 'bg-gray-500/20 text-gray-400',
+  OTHER: 'bg-gray-500/20 text-gray-400',
+}
+
+function ActivityActionIcon({ action }: { action: string }) {
+  const cls = 'shrink-0'
+  switch (action) {
+    case 'NOTE': return <StickyNote size={14} className={cls} />
+    case 'CALL': return <Phone size={14} className={cls} />
+    case 'STATUS_CHANGE': return <RefreshCw size={14} className={cls} />
+    case 'TASK_CREATED': return <ListTodo size={14} className={cls} />
+    case 'SYSTEM': return <Cpu size={14} className={cls} />
+    default: return <Activity size={14} className={cls} />
+  }
 }
 
 function KPICard({
@@ -127,6 +172,58 @@ function KPICard({
         </div>
       </Card>
     </Link>
+  )
+}
+
+function RecentActivityFeed({ entries }: { entries: ActivityEntry[] }) {
+  if (entries.length === 0) {
+    return <p className="text-center text-gray-600 text-sm py-6">אין פעילות אחרונה</p>
+  }
+
+  return (
+    <div className="space-y-2">
+      {entries.map((entry) => {
+        const colorCls = ACTIVITY_ACTION_COLOR[entry.action] ?? ACTIVITY_ACTION_COLOR.OTHER
+        const entityHref = entry.lead
+          ? `/leads/${entry.lead.id}`
+          : entry.client
+          ? `/clients/${entry.client.id}`
+          : null
+        const entityName = entry.lead?.fullName ?? entry.client?.name ?? null
+
+        return (
+          <div key={entry.id} className="flex items-start gap-2.5 py-1.5">
+            <span className={`mt-0.5 p-1.5 rounded-lg ${colorCls}`}>
+              <ActivityActionIcon action={entry.action} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-white truncate">{entry.description}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {entry.employee && (
+                  <span className="text-xs text-gray-500">{entry.employee.name}</span>
+                )}
+                {entry.employee && entityName && (
+                  <span className="text-gray-700 text-xs">·</span>
+                )}
+                {entityName && entityHref ? (
+                  <Link href={entityHref} className="text-xs text-blue-400 hover:text-blue-300 truncate">
+                    {entityName}
+                  </Link>
+                ) : entityName ? (
+                  <span className="text-xs text-gray-500 truncate">{entityName}</span>
+                ) : null}
+              </div>
+            </div>
+            <div className="shrink-0 text-left">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorCls}`}>
+                {ACTIVITY_ACTION_LABEL[entry.action] ?? entry.action}
+              </span>
+              <p className="text-[10px] text-gray-600 mt-0.5 text-left">{timeAgo(entry.createdAt)}</p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -179,7 +276,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <KPICard
           icon={Users}
           label="לידים פעילים"
@@ -187,6 +284,13 @@ export default function DashboardPage() {
           sub={`${data.leads.total} סה"כ`}
           href="/leads"
           color="bg-blue-600"
+        />
+        <KPICard
+          icon={UserCheck}
+          label="עובדים פעילים"
+          value={data.employees.active}
+          href="/employees"
+          color="bg-indigo-600"
         />
         <KPICard
           icon={FolderKanban}
@@ -429,6 +533,17 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+
+      {/* Recent Activity Feed */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-purple-400" />
+            <h2 className="text-sm font-semibold text-white">פעילות אחרונה</h2>
+          </div>
+        </div>
+        <RecentActivityFeed entries={data.recentActivity ?? []} />
+      </Card>
 
       {/* Overdue alert */}
       {data.tasks.overdue > 0 && (
