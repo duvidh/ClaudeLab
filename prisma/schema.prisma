@@ -39,13 +39,14 @@ model Lead {
   entryDate        DateTime  @default(now())
   deletedAt        DateTime?
 
-  client    Client?
-  notes     LeadNote[]
-  meetings  Meeting[]
-  files     LeadFile[]
-  tasks     Task[]
-  quotes    Quote[]
-  documents Document[]
+  client       Client?
+  notes        LeadNote[]
+  meetings     Meeting[]
+  files        LeadFile[]
+  tasks        Task[]
+  quotes       Quote[]
+  documents    Document[]
+  activityLogs ActivityLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,13 +94,14 @@ model Client {
   notes          String?
   deletedAt      DateTime?
 
-  projects  Project[]
-  quotes    Quote[]
-  invoices  Invoice[]
-  meetings  Meeting[]
-  tasks     Task[]
-  files     ClientFile[]
-  documents Document[]
+  projects     Project[]
+  quotes       Quote[]
+  invoices     Invoice[]
+  meetings     Meeting[]
+  tasks        Task[]
+  files        ClientFile[]
+  documents    Document[]
+  activityLogs ActivityLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -294,25 +296,27 @@ model Invoice {
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
 model Task {
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   title       String
   description String?
   assignedTo  String?
+  employeeId  String?
+  employee    Employee?  @relation(fields: [employeeId], references: [id])
   dueDate     DateTime?
   // status: PENDING | IN_PROGRESS | DONE
-  status      String    @default("PENDING")
+  status      String     @default("PENDING")
   // priority: LOW | MEDIUM | HIGH
-  priority    String    @default("MEDIUM")
+  priority    String     @default("MEDIUM")
   // taskType: TASK | CALL | MEETING | EMAIL | FOLLOWUP | ADMINISTRATIVE | OTHER
-  taskType    String    @default("TASK")
+  taskType    String     @default("TASK")
   leadId      String?
-  lead        Lead?     @relation(fields: [leadId], references: [id])
+  lead        Lead?      @relation(fields: [leadId], references: [id])
   clientId    String?
-  client      Client?   @relation(fields: [clientId], references: [id])
+  client      Client?    @relation(fields: [clientId], references: [id])
   projectId   String?
-  project     Project?  @relation(fields: [projectId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  project     Project?   @relation(fields: [projectId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 // ─── Employees ───────────────────────────────────────────────────────────────
@@ -338,6 +342,8 @@ model Employee {
   updatedAt   DateTime  @updatedAt
 
   assignedLeads Lead[]
+  tasks         Task[]
+  activityLogs  ActivityLog[]
 }
 
 // ─── Suppliers ───────────────────────────────────────────────────────────────
@@ -354,6 +360,22 @@ model Supplier {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ─── Activity Log ────────────────────────────────────────────────────────────
+
+model ActivityLog {
+  id          String    @id @default(cuid())
+  // action: NOTE | CALL | STATUS_CHANGE | TASK_CREATED | SYSTEM | OTHER
+  action      String
+  description String
+  employeeId  String?
+  employee    Employee? @relation(fields: [employeeId], references: [id])
+  leadId      String?
+  lead        Lead?     @relation(fields: [leadId], references: [id])
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id])
+  createdAt   DateTime  @default(now())
 }
 
 // ─── Notifications ───────────────────────────────────────────────────────────

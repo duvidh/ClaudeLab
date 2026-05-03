@@ -17,8 +17,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
       notes: { orderBy: { createdAt: 'desc' } },
       meetings: { orderBy: { date: 'desc' } },
       files: true,
-      tasks: { orderBy: { createdAt: 'desc' } },
+      tasks: {
+        include: { employee: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+      },
       client: true,
+      assignedTo: { select: { id: true, name: true, position: true } },
     },
   })
 

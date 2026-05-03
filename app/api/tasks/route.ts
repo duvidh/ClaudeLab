@@ -7,17 +7,24 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
     const taskType = searchParams.get('taskType')
+    const leadId = searchParams.get('leadId')
+    const clientId = searchParams.get('clientId')
+    const projectId = searchParams.get('projectId')
 
     const tasks = await prisma.task.findMany({
       where: {
         ...(status ? { status } : {}),
         ...(priority ? { priority } : {}),
         ...(taskType ? { taskType } : {}),
+        ...(leadId ? { leadId } : {}),
+        ...(clientId ? { clientId } : {}),
+        ...(projectId ? { projectId } : {}),
       },
       include: {
         lead: { select: { id: true, fullName: true } },
         client: { select: { id: true, name: true } },
         project: { select: { id: true, name: true } },
+        employee: { select: { id: true, name: true } },
       },
       orderBy: [{ priority: 'desc' }, { dueDate: 'asc' }, { createdAt: 'desc' }],
     })
@@ -30,7 +37,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const task = await prisma.task.create({ data: body })
+    const { dueDate, ...rest } = body
+    const task = await prisma.task.create({
+      data: {
+        ...rest,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+      },
+      include: {
+        employee: { select: { id: true, name: true } },
+        lead: { select: { id: true, fullName: true } },
+        client: { select: { id: true, name: true } },
+        project: { select: { id: true, name: true } },
+      },
+    })
     return NextResponse.json({ data: task }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת המשימה' }, { status: 500 })
@@ -39,8 +58,10 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, ...data } = await req.json()
-    const task = await prisma.task.update({ where: { id }, data })
+    const { id, dueDate, ...data } = await req.json()
+    const updateData: Record<string, unknown> = { ...data }
+    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
+    const task = await prisma.task.update({ where: { id }, data: updateData })
     return NextResponse.json({ data: task })
   } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון המשימה' }, { status: 500 })
@@ -53,7 +74,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'חסר מזהה משימה' }, { status: 400 })
     await prisma.task.delete({ where: { id } })
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ data: { success: true } })
   } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת המשימה' }, { status: 500 })
   }

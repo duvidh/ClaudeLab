@@ -51,6 +51,7 @@ const TABS = [
   { id: 'activity', label: 'פעילות' },
   { id: 'notes', label: 'הערות' },
   { id: 'meetings', label: 'פגישות/שיחות' },
+  { id: 'tasks', label: 'משימות' },
   { id: 'quotes', label: 'הצעות מחיר' },
   { id: 'documents', label: 'מסמכים' },
 ]
@@ -89,6 +90,8 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
         ? lead.notes.length
         : t.id === 'meetings'
         ? lead.meetings.length
+        : t.id === 'tasks'
+        ? lead.tasks.length
         : t.id === 'quotes'
         ? quotesCount
         : t.id === 'documents'
@@ -297,6 +300,10 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
         <MeetingsTab leadId={lead.id} initialMeetings={lead.meetings} />
       )}
 
+      {activeTab === 'tasks' && (
+        <LeadTasksTab lead={lead} employees={employees} />
+      )}
+
       {activeTab === 'quotes' && (
         <LeadQuotesTab leadId={lead.id} onLoad={setQuotesCount} />
       )}
@@ -365,6 +372,189 @@ function InfoRow({
           <p className="text-sm text-gray-200">{value}</p>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Tasks tab ───────────────────────────────────────────────────────────────
+
+type LeadTask = {
+  id: string
+  title: string
+  description: string | null
+  status: string
+  priority: string
+  taskType: string
+  dueDate: string | null
+  assignedTo: string | null
+  employee?: { id: string; name: string } | null
+}
+
+const TASK_STATUS_CYCLE: Record<string, string> = { PENDING: 'IN_PROGRESS', IN_PROGRESS: 'DONE', DONE: 'PENDING' }
+const TASK_STATUS_LABEL: Record<string, string> = { PENDING: 'ממתין', IN_PROGRESS: 'בביצוע', DONE: 'הושלם' }
+const TASK_PRIORITY_LABEL: Record<string, string> = { HIGH: 'גבוהה', MEDIUM: 'בינונית', LOW: 'נמוכה' }
+const TASK_TYPE_OPTS = [
+  { value: 'TASK', label: 'משימה' }, { value: 'CALL', label: 'שיחה' },
+  { value: 'MEETING', label: 'פגישה' }, { value: 'EMAIL', label: 'אימייל' },
+  { value: 'FOLLOWUP', label: 'מעקב' }, { value: 'OTHER', label: 'אחר' },
+]
+const TASK_PRIORITY_OPTS = [
+  { value: 'HIGH', label: 'גבוהה' }, { value: 'MEDIUM', label: 'בינונית' }, { value: 'LOW', label: 'נמוכה' },
+]
+
+function LeadTasksTab({ lead, employees }: { lead: LeadWithRelations; employees: EmployeeOption[] }) {
+  const [tasks, setTasks] = useState<LeadTask[]>((lead.tasks ?? []) as LeadTask[])
+  const [addOpen, setAddOpen] = useState(false)
+  const [form, setForm] = useState({ title: '', taskType: 'TASK', priority: 'MEDIUM', dueDate: '', employeeId: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  function setF(k: keyof typeof form, v: string) { setForm((p) => ({ ...p, [k]: v })) }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.title.trim()) return
+    setSubmitting(true)
+    try {
+      const selectedEmp = employees.find((emp) => emp.id === form.employeeId)
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          taskType: form.taskType,
+          priority: form.priority,
+          dueDate: form.dueDate ? new Date(form.dueDate) : undefined,
+          employeeId: form.employeeId || undefined,
+          assignedTo: selectedEmp?.name || undefined,
+          leadId: lead.id,
+          status: 'PENDING',
+        }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setTasks((prev) => [json.data, ...prev])
+        setForm({ title: '', taskType: 'TASK', priority: 'MEDIUM', dueDate: '', employeeId: '' })
+        setAddOpen(false)
+      }
+    } finally { setSubmitting(false) }
+  }
+
+  async function cycleStatus(task: LeadTask) {
+    const nextStatus = TASK_STATUS_CYCLE[task.status] ?? 'PENDING'
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: nextStatus }),
+    })
+    if (res.ok) setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, status: nextStatus } : t))
+  }
+
+  async function handleDelete(id: string) {
+    const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
+    if (res.ok) setTasks((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  const pending = tasks.filter((t) => t.status !== 'DONE').length
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-gray-400">{tasks.length} משימות · {pending} פתוחות</p>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus size={14} />
+          משימה חדשה
+        </Button>
+      </div>
+
+      {addOpen && (
+        <Card className="mb-4 border border-blue-500/30">
+          <form onSubmit={handleAdd} className="space-y-3">
+            <Input
+              label="כותרת *"
+              placeholder="תיאור המשימה..."
+              value={form.title}
+              onChange={(e) => setF('title', e.target.value)}
+              autoFocus
+            />
+            <div className="grid grid-cols-3 gap-3">
+              <Select label="סוג" options={TASK_TYPE_OPTS} value={form.taskType} onChange={(e) => setF('taskType', e.target.value)} />
+              <Select label="עדיפות" options={TASK_PRIORITY_OPTS} value={form.priority} onChange={(e) => setF('priority', e.target.value)} />
+              <Input label="תאריך יעד" type="date" value={form.dueDate} onChange={(e) => setF('dueDate', e.target.value)} />
+            </div>
+            {employees.length > 0 && (
+              <Select
+                label="שיוך לעובד"
+                options={[{ value: '', label: 'ללא שיוך' }, ...employees.map((e) => ({ value: e.id, label: `${e.name}${e.position ? ` · ${e.position}` : ''}` }))]}
+                value={form.employeeId}
+                onChange={(e) => setF('employeeId', e.target.value)}
+              />
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" loading={submitting} disabled={!form.title.trim()} size="sm" className="flex-1">הוסף משימה</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => setAddOpen(false)}>ביטול</Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {tasks.length === 0 ? (
+        <div className="text-center py-10">
+          <ClipboardList size={32} className="mx-auto text-gray-600 mb-3" />
+          <p className="text-gray-500 text-sm mb-3">אין משימות לליד זה</p>
+          <Button size="sm" variant="secondary" onClick={() => setAddOpen(true)}>
+            <Plus size={14} />
+            הוסף משימה ראשונה
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {tasks.map((task) => {
+            const isOverdue = task.dueDate && task.status !== 'DONE' && new Date(task.dueDate) < new Date()
+            return (
+              <Card key={task.id} className="flex items-start gap-3 group">
+                <button
+                  onClick={() => cycleStatus(task)}
+                  className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                    task.status === 'DONE' ? 'border-green-400 bg-green-400/20 text-green-400' :
+                    task.status === 'IN_PROGRESS' ? 'border-blue-400 bg-blue-400/10 text-blue-400' :
+                    'border-gray-600 hover:border-gray-400'
+                  }`}
+                  title={`עבור ל${TASK_STATUS_LABEL[TASK_STATUS_CYCLE[task.status] ?? 'PENDING']}`}
+                >
+                  {task.status === 'DONE' && <CheckCircle2 size={11} />}
+                  {task.status === 'IN_PROGRESS' && <div className="w-2 h-2 rounded-full bg-blue-400" />}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium ${task.status === 'DONE' ? 'line-through text-gray-500' : 'text-white'}`}>
+                    {task.title}
+                  </p>
+                  <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-500 flex-wrap">
+                    <span className={`px-1.5 py-0.5 rounded text-xs ${
+                      task.priority === 'HIGH' ? 'bg-red-500/20 text-red-400' :
+                      task.priority === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' :
+                      'bg-gray-700 text-gray-400'
+                    }`}>{TASK_PRIORITY_LABEL[task.priority] ?? task.priority}</span>
+                    <span className="bg-gray-700 px-1.5 py-0.5 rounded">{TASK_STATUS_LABEL[task.status] ?? task.status}</span>
+                    {(task.employee?.name ?? task.assignedTo) && <span>→ {task.employee?.name ?? task.assignedTo}</span>}
+                    {task.dueDate && (
+                      <span className={isOverdue ? 'text-red-400' : ''}>
+                        {formatDate(task.dueDate)}
+                        {isOverdue && ' (באיחור)'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleDelete(task.id)}
+                  className="p-1 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0 mt-0.5"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </Card>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

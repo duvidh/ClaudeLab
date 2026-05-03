@@ -80,6 +80,7 @@ type TaskWithRelations = Task & {
   lead?: { id: string; fullName: string } | null
   client?: { id: string; name: string } | null
   project?: { id: string; name: string } | null
+  employee?: { id: string; name: string } | null
 }
 
 export default function TasksPage() {
@@ -151,12 +152,12 @@ export default function TasksPage() {
   const pendingCount = tasks.filter((t) => t.status !== 'DONE').length
 
   const filteredTasks = assigneeFilter
-    ? tasks.filter((t) => t.assignedTo === assigneeFilter)
+    ? tasks.filter((t) => t.employeeId === assigneeFilter)
     : tasks
 
   const assigneeOptions = [
     { value: '', label: 'כל הנציגים' },
-    ...employees.map((e) => ({ value: e.name, label: e.name })),
+    ...employees.map((e) => ({ value: e.id, label: e.name })),
   ]
 
   return (
@@ -278,7 +279,7 @@ function TaskRow({
           {task.client && <span>👤 {task.client.name}</span>}
           {task.project && <span>📁 {task.project.name}</span>}
           {task.lead && <span>🎯 {task.lead.fullName}</span>}
-          {task.assignedTo && <span>→ {task.assignedTo}</span>}
+          {(task.employee?.name ?? task.assignedTo) && <span>→ {task.employee?.name ?? task.assignedTo}</span>}
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
@@ -369,7 +370,7 @@ function KanbanView({
                         <div className="flex flex-col gap-0.5 text-xs text-gray-500">
                           {task.client && <span>👤 {task.client.name}</span>}
                           {task.project && <span>📁 {task.project.name}</span>}
-                          {task.assignedTo && <span>→ {task.assignedTo}</span>}
+                          {(task.employee?.name ?? task.assignedTo) && <span>→ {task.employee?.name ?? task.assignedTo}</span>}
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <StatusBadge type="priority" value={task.priority} />
@@ -411,7 +412,7 @@ function TaskForm({
   const [form, setForm] = useState({
     title: '',
     description: '',
-    assignedTo: '',
+    employeeId: '',
     dueDate: '',
     priority: 'MEDIUM',
     status: initialStatus,
@@ -447,13 +448,15 @@ function TaskForm({
     if (!form.title) return
     setLoading(true)
     try {
+      const selectedEmp = employees.find((e) => e.id === form.employeeId)
       const payload: Record<string, unknown> = {
         ...form,
         dueDate: form.dueDate ? new Date(form.dueDate) : undefined,
+        employeeId: form.employeeId || undefined,
+        assignedTo: selectedEmp?.name || undefined,
         leadId: form.leadId || undefined,
         clientId: form.clientId || undefined,
         projectId: form.projectId || undefined,
-        assignedTo: form.assignedTo || undefined,
       }
       await onSubmit(payload)
     } finally { setLoading(false) }
@@ -461,7 +464,7 @@ function TaskForm({
 
   const assignOptions = [
     { value: '', label: 'ללא שיוך' },
-    ...employees.map((e) => ({ value: e.name, label: e.name })),
+    ...employees.map((e) => ({ value: e.id, label: e.name })),
   ]
   const leadOptions = [
     { value: '', label: 'ללא ליד' },
@@ -493,9 +496,9 @@ function TaskForm({
         <Select label="עדיפות" options={PRIORITY_FORM_OPTIONS} value={form.priority} onChange={(e) => set('priority', e.target.value)} />
       </div>
       {employees.length > 0 ? (
-        <Select label="שיוך ל" options={assignOptions} value={form.assignedTo} onChange={(e) => set('assignedTo', e.target.value)} />
+        <Select label="שיוך לעובד" options={assignOptions} value={form.employeeId} onChange={(e) => set('employeeId', e.target.value)} />
       ) : (
-        <Input label="שיוך ל" placeholder="שם הנציג" value={form.assignedTo} onChange={(e) => set('assignedTo', e.target.value)} />
+        <Input label="שיוך לעובד" placeholder="שם הנציג" value={form.employeeId} onChange={(e) => set('employeeId', e.target.value)} />
       )}
       <Input label="תאריך ושעה" type="datetime-local" value={form.dueDate} onChange={(e) => set('dueDate', e.target.value)} />
       <div className="grid grid-cols-2 gap-3">
