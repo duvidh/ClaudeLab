@@ -172,10 +172,19 @@ export default function QuoteDetailPage() {
 
   if (!quote) return <p className="text-gray-500 text-center py-24">הצעת מחיר לא נמצאה</p>
 
+  const subjectName = quote.client?.name ?? quote.lead?.fullName ?? null
+  const subjectHref = quote.client ? `/clients/${quote.client.id}` : quote.lead ? `/leads/${quote.lead.id}` : null
+
   return (
     <div>
       <nav className="flex items-center gap-1 text-sm text-gray-500 mb-5">
         <Link href="/quotes" className="hover:text-white transition-colors">הצעות מחיר</Link>
+        {subjectHref && subjectName && (
+          <>
+            <ChevronRight size={14} />
+            <Link href={subjectHref} className="hover:text-white transition-colors">{subjectName}</Link>
+          </>
+        )}
         <ChevronRight size={14} />
         <span className="text-gray-300">{quote.quoteNumber}</span>
         {actionMsg && (
@@ -187,7 +196,7 @@ export default function QuoteDetailPage() {
 
       <PageHeader
         title={`הצעת מחיר ${quote.quoteNumber}`}
-        subtitle={`לקוח: ${quote.client?.name} ${quote.project ? `· פרויקט: ${quote.project.name}` : ''}`}
+        subtitle={`${subjectName ? `${quote.client ? 'לקוח' : 'ליד'}: ${subjectName}` : ''}${quote.project ? ` · פרויקט: ${quote.project.name}` : ''}`}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             {/* Primary workflow actions */}
@@ -219,21 +228,21 @@ export default function QuoteDetailPage() {
             </div>
             <PDFExportButton quote={quote} clientId={quote.clientId} />
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`שלום,\nמצורפת הצעת מחיר ${quote.quoteNumber} עבור ${quote.client?.name}.\nסכום: ₪${calcTotal(quote.items ?? [], quote.discount ?? 0).toLocaleString('he-IL', { maximumFractionDigits: 0 })}\nבתוקף עד: ${quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('he-IL') : 'לא הוגדר'}\n\nנשמח לשמוע ממך!`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`שלום,\nמצורפת הצעת מחיר ${quote.quoteNumber}${subjectName ? ` עבור ${subjectName}` : ''}.\nסכום: ₪${calcTotal(quote.items ?? [], quote.discount ?? 0).toLocaleString('he-IL', { maximumFractionDigits: 0 })}\nבתוקף עד: ${quote.validUntil ? new Date(quote.validUntil).toLocaleDateString('he-IL') : 'לא הוגדר'}\n\nנשמח לשמוע ממך!`)}`}
               target="_blank"
               rel="noopener noreferrer"
               title="שתף בוואטסאפ"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 transition-colors"
             >
               <MessageCircle size={13} />
-              ווטסאפ
+              וואטסאפ
             </a>
             <Button variant="secondary" size="sm" onClick={handleDuplicate} loading={duplicating}>
               <Copy size={14} />
               שכפל
             </Button>
-            {quote.status === 'APPROVED' && !quote.projectId && (
-              <Button size="sm" onClick={() => { setProjectName(`פרויקט - ${quote.client?.name}`); setProjectOpen(true) }}>
+            {quote.status === 'APPROVED' && !quote.projectId && quote.clientId && (
+              <Button size="sm" onClick={() => { setProjectName(`פרויקט - ${subjectName ?? ''}`); setProjectOpen(true) }}>
                 <FolderPlus size={14} />
                 פתח פרויקט
               </Button>
@@ -304,7 +313,7 @@ export default function QuoteDetailPage() {
 
       <Modal open={projectOpen} onClose={() => setProjectOpen(false)} title="פתיחת פרויקט מהצעה" size="sm">
         <form onSubmit={handleCreateProject} className="space-y-3">
-          <p className="text-sm text-gray-400">ייצור פרויקט חדש ללקוח <span className="text-white font-medium">{quote.client?.name}</span> עם ערך חוזה לפי סכום ההצעה.</p>
+          <p className="text-sm text-gray-400">ייצור פרויקט חדש ללקוח <span className="text-white font-medium">{subjectName}</span> עם ערך חוזה לפי סכום ההצעה.</p>
           <Input
             label="שם הפרויקט *"
             value={projectName}

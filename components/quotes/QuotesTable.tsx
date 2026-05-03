@@ -12,7 +12,8 @@ import type { Quote } from '@/types'
 type QuoteItem = { unitPrice: number; dimension1: number | null; dimension2: number | null }
 
 type QuoteWithRelations = Quote & {
-  client: { id: string; name: string }
+  client?: { id: string; name: string } | null
+  lead?: { id: string; fullName: string } | null
   project?: { id: string; name: string } | null
   items: QuoteItem[]
   _count: { items: number }
@@ -78,7 +79,8 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
       } else if (sortField === 'total') {
         va = calcTotal(a.items, a.discount); vb = calcTotal(b.items, b.discount)
       } else if (sortField === 'clientName') {
-        va = a.client.name.toLowerCase(); vb = b.client.name.toLowerCase()
+        va = (a.client?.name ?? a.lead?.fullName ?? '').toLowerCase()
+        vb = (b.client?.name ?? b.lead?.fullName ?? '').toLowerCase()
       } else {
         va = ((a[sortField] as string) ?? '').toString().toLowerCase()
         vb = ((b[sortField] as string) ?? '').toString().toLowerCase()
@@ -127,9 +129,17 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
                 </Link>
               </td>
               <td className="px-4 py-3">
-                <Link href={`/clients/${quote.client.id}`} className="text-gray-300 hover:text-white">
-                  {quote.client.name}
-                </Link>
+                {quote.client ? (
+                  <Link href={`/clients/${quote.client.id}`} className="text-gray-300 hover:text-white">
+                    {quote.client.name}
+                  </Link>
+                ) : quote.lead ? (
+                  <Link href={`/leads/${quote.lead.id}`} className="text-gray-300 hover:text-white">
+                    {quote.lead.fullName}
+                  </Link>
+                ) : (
+                  <span className="text-gray-500">—</span>
+                )}
               </td>
               <td className="px-4 py-3 text-gray-400">{quote.project?.name || '—'}</td>
               <td className="px-4 py-3 text-gray-400">{formatDate(quote.date)}</td>
