@@ -333,7 +333,8 @@ export default function DashboardPage() {
                 לדוח מלא <ArrowLeft size={11} />
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+>
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ חוזים</p>
                 <p className="text-base font-bold text-white">{formatCurrency(finData.totalContracts)}</p>
@@ -387,7 +388,8 @@ export default function DashboardPage() {
         </ResponsiveContainer>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+>
         {/* Lead pipeline */}
         <Card className="col-span-1">
           <div className="flex items-center justify-between mb-4">
@@ -462,7 +464,8 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+>
         {/* Upcoming tasks */}
         <Card>
           <div className="flex items-center justify-between mb-4">
