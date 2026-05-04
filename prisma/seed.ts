@@ -2,51 +2,44 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 מנקים וממלאים נתונים (גרסה בטוחה)...')
+  console.log('🌱 מנקים וממלאים נתונים - גרסת "לילה לבן" סופית...')
 
-  // ניקוי טבלאות
+  // ניקוי טבלאות (עם catch כדי שלא יקרוס אם הטבלה ריקה)
   await prisma.project.deleteMany({}).catch(() => {})
   await prisma.client.deleteMany({}).catch(() => {})
   await prisma.employee.deleteMany({}).catch(() => {})
   await prisma.lead.deleteMany({}).catch(() => {})
   await prisma.catalogItem.deleteMany({}).catch(() => {})
 
-  // 1. קטלוג
-  await prisma.catalogItem.createMany({
-    data: [
-      { sku: 'PRK-001', name: 'פרקט אלון טבעי', category: 'ריצוף', unit: 'מ"ר', salePrice: 180, selfCost: 110, supplier: 'פרקט בע"מ', stock: 200, isActive: true },
-      { sku: 'TIL-002', name: 'אריחי גרניט 60x60', category: 'ריצוף', unit: 'מ"ר', salePrice: 140, selfCost: 82, supplier: 'קרמיקה ישראל', stock: 500, isActive: true }
-    ]
+  // 1. קטלוג - רק שם ו-SKU
+  await prisma.catalogItem.create({
+    data: { sku: 'PRK-001', name: 'פרקט אלון טבעי', category: 'ריצוף', unit: 'מ"ר', salePrice: 180, selfCost: 110, supplier: 'ספק א' }
   })
 
-  // 2. עובדים (בלי שדה salary שהפיל אותנו)
+  // 2. עובדים - רק שם ואימייל
   await prisma.employee.create({
-    data: { name: 'דוד מנהל עבודה', role: 'מנהל פרויקטים', email: 'manager@example.com', phone: '050-0000000' }
+    data: { name: 'דוד המנהל', email: 'manager@test.com', role: 'מנהל' }
   })
 
-  // 3. לקוח ופרויקט
+  // 3. לקוח ופרויקט - הכי בסיסי
   const client = await prisma.client.create({
-    data: { name: 'משפחת כהן', email: 'client1@test.com', phone: '054-9999999' }
+    data: { name: 'לקוח בדיקה', email: 'client@test.com' }
   })
 
   await prisma.project.create({
     data: {
-      name: 'שיפוץ פנטהאוז',
+      name: 'פרויקט לדוגמה',
       status: 'In Progress',
-      totalAmount: 250000,
       clientId: client.id
     }
   })
 
-  // 4. לידים
-  await prisma.lead.createMany({
-    data: [
-      { name: 'יוסי מזרחי', phone: '052-1111111', source: 'פייסבוק', status: 'New' },
-      { name: 'רונית לוי', phone: '053-2222222', source: 'המלצה', status: 'Contacted' }
-    ]
+  // 4. לידים - רק שם
+  await prisma.lead.create({
+    data: { name: 'ליד חדש מהלילה', status: 'New' }
   })
 
-  console.log('✅ הכל מוכן! המערכת מלאה.')
+  console.log('✅ הנס התרחש! המערכת מלאה. לילה טוב דוד!')
 }
 
 main()
