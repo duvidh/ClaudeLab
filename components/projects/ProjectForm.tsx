@@ -127,7 +127,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
             placeholder="שם המנהל"
             value={form.projectManager}
             onChange={(e) => set('projectManager', e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <datalist id="pm-employees">
             {employees.map((e) => <option key={e.id} value={e.name} />)}
@@ -136,7 +136,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
         <Input id="contractValue" label="ערך חוזה (₪)" type="number" placeholder="500000" value={form.contractValue} onChange={(e) => set('contractValue', e.target.value)} />
         {employees.length > 0 && (
           <div className="col-span-2">
-            <p className="text-sm text-gray-300 font-medium mb-2">צוות שטח</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-2">צוות שטח</p>
             <div className="flex flex-wrap gap-2">
               {employees.map((e) => {
                 const selected = fieldTeam.includes(e.name)
@@ -145,7 +145,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
                     key={e.id}
                     type="button"
                     onClick={() => setFieldTeam((prev) => selected ? prev.filter((n) => n !== e.name) : [...prev, e.name])}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${selected ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${selected ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                   >
                     {e.name}{e.position ? ` · ${e.position}` : ''}
                   </button>
@@ -163,7 +163,7 @@ export function ProjectForm({ initialData, preselectedClientId, onSubmit, onCanc
             value={form.notes}
             onChange={(e) => set('notes', e.target.value)}
             rows={2}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </FormField>
       </div>

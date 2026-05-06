@@ -26,19 +26,19 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           id={id}
           className={cn(
-            'w-full bg-white dark:bg-gray-800 border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none',
-            error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700',
+            'w-full bg-white dark:bg-gray-900 border rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none',
+            error ? 'border-red-500' : 'border-gray-300 dark:border-gray-700',
             className
           )}
           {...props}
         >
           {placeholder && (
-            <option value="" className="bg-white dark:bg-gray-800">
+            <option value="" className="bg-white dark:bg-gray-900">
               {placeholder}
             </option>
           )}
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-white dark:bg-gray-800">
+            <option key={opt.value} value={opt.value} className="bg-white dark:bg-gray-900">
               {opt.label}
             </option>
           ))}

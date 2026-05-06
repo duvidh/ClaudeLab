@@ -64,13 +64,13 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
 }
 
 export const LEAD_STATUS_COLORS: Record<LeadStatus, string> = {
-  NEW: 'bg-blue-500/20 text-blue-300',
-  CONTACTED: 'bg-yellow-500/20 text-yellow-300',
-  MEETING_SCHEDULED: 'bg-purple-500/20 text-purple-300',
-  QUOTE_SENT: 'bg-orange-500/20 text-orange-300',
-  WON: 'bg-green-500/20 text-green-300',
-  LOST: 'bg-red-500/20 text-red-300',
-  CONVERTED: 'bg-teal-500/20 text-teal-300',
+  NEW: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300',
+  CONTACTED: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300',
+  MEETING_SCHEDULED: 'bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-300',
+  QUOTE_SENT: 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300',
+  WON: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300',
+  LOST: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300',
+  CONVERTED: 'bg-teal-100 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300',
 }
 
 export const LEAD_SOURCE_LABELS: Record<string, string> = {
@@ -102,11 +102,11 @@ export const PROJECT_STATUS_LABELS: Record<string, string> = {
 }
 
 export const PROJECT_STATUS_COLORS: Record<string, string> = {
-  PLANNING: 'bg-blue-500/20 text-blue-300',
-  ACTIVE: 'bg-green-500/20 text-green-300',
-  PAUSED: 'bg-yellow-500/20 text-yellow-300',
-  COMPLETED: 'bg-teal-500/20 text-teal-300',
-  CANCELLED: 'bg-red-500/20 text-red-300',
+  PLANNING: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300',
+  ACTIVE: 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300',
+  PAUSED: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300',
+  COMPLETED: 'bg-teal-100 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300',
+  CANCELLED: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300',
 }
 
 export const QUOTE_STATUS_LABELS: Record<string, string> = {
@@ -130,9 +130,9 @@ export const PRIORITY_LABELS: Record<string, string> = {
 }
 
 export const PRIORITY_COLORS: Record<string, string> = {
-  LOW: 'bg-gray-500/20 text-gray-300',
-  MEDIUM: 'bg-yellow-500/20 text-yellow-300',
-  HIGH: 'bg-red-500/20 text-red-300',
+  LOW: 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300',
+  MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300',
+  HIGH: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300',
 }
 
 // ─── API response types ───────────────────────────────────────────────────────

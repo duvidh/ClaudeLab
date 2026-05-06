@@ -35,7 +35,7 @@ export function NotesList({ notes, onAddNote }: NotesListProps) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="הוסף הערה..."
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <Button type="submit" size="sm" loading={loading} disabled={!content.trim()}>
           <Send size={14} />
@@ -44,22 +44,22 @@ export function NotesList({ notes, onAddNote }: NotesListProps) {
 
       {/* Notes list */}
       {notes.length === 0 ? (
-        <div className="flex flex-col items-center py-8 text-gray-500">
+        <div className="flex flex-col items-center py-8 text-gray-400 dark:text-gray-500">
           <MessageSquare size={24} className="mb-2" />
           <p className="text-sm">אין הערות עדיין</p>
         </div>
       ) : (
         <div className="space-y-2">
           {notes.map((note) => (
-            <div key={note.id} className="bg-gray-750 border border-gray-700 rounded-lg p-3">
-              <p className="text-sm text-gray-200 leading-relaxed">{note.content}</p>
+            <div key={note.id} className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{note.content}</p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="w-5 h-5 rounded-full bg-blue-600/30 flex items-center justify-center text-xs text-blue-300">
+                <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-600/30 flex items-center justify-center text-xs text-blue-700 dark:text-blue-300">
                   {note.author.charAt(0)}
                 </div>
-                <span className="text-xs text-gray-400">{note.author}</span>
-                <span className="text-xs text-gray-600">·</span>
-                <span className="text-xs text-gray-500">{timeAgo(note.createdAt)}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{note.author}</span>
+                <span className="text-xs text-gray-400 dark:text-gray-600">·</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">{timeAgo(note.createdAt)}</span>
               </div>
             </div>
           ))}

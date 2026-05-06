@@ -193,7 +193,7 @@ export default function CatalogPage() {
             placeholder="חיפוש לפי שם, מק״ט, קטגוריה..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {categories.length > 0 && (
@@ -222,10 +222,10 @@ export default function CatalogPage() {
           action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} />פריט חדש</Button>}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-800/60 border-b border-gray-700 text-gray-400">
+              <tr className="bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
                 <th className="px-4 py-3 font-semibold text-right">מק״ט</th>
                 <th className="px-4 py-3 font-semibold text-right">שם פריט</th>
                 <th className="px-4 py-3 font-semibold text-right">קטגוריה</th>
@@ -239,7 +239,7 @@ export default function CatalogPage() {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {displayedItems.map((item) => {
                 const isEditing = editingId === item.id
                 const profitPct = item.salePrice > 0
@@ -247,33 +247,33 @@ export default function CatalogPage() {
                   : 0
 
                 return (
-                  <tr key={item.id} className={`hover:bg-gray-800/30 ${!item.isActive ? 'opacity-50' : ''}`}>
-                    <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                  <tr key={item.id} className={`bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${!item.isActive ? 'opacity-50' : ''}`}>
+                    <td className="px-4 py-2.5 font-mono text-xs text-gray-500 dark:text-gray-400">
                       {isEditing
                         ? <input value={editRow.sku ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, sku: e.target.value }))} className="w-20 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.sku}
                     </td>
-                    <td className="px-4 py-2.5 font-medium text-white">
+                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">
                       {isEditing
                         ? <input value={editRow.name ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, name: e.target.value }))} className="w-36 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.name}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-300">
+                    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">
                       {isEditing
                         ? <input value={editRow.category ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, category: e.target.value }))} className="w-24 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.category || '—'}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-300">
+                    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">
                       {isEditing
                         ? <input value={editRow.unit ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, unit: e.target.value }))} className="w-16 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.unit || '—'}
                     </td>
-                    <td className="px-4 py-2.5 font-medium text-white">
+                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">
                       {isEditing
                         ? <input type="number" value={editRow.salePrice ?? 0} onChange={(e) => setEditRow((p) => ({ ...p, salePrice: parseFloat(e.target.value) || 0 }))} className="w-20 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : formatCurrency(item.salePrice)}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-300">
+                    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">
                       {isEditing
                         ? <input type="number" value={editRow.selfCost ?? 0} onChange={(e) => setEditRow((p) => ({ ...p, selfCost: parseFloat(e.target.value) || 0 }))} className="w-20 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : formatCurrency(item.selfCost)}
@@ -281,18 +281,18 @@ export default function CatalogPage() {
                     <td className={`px-4 py-2.5 font-semibold ${profitPct >= 20 ? 'text-green-400' : profitPct >= 0 ? 'text-yellow-400' : 'text-red-400'}`}>
                       {profitPct.toFixed(1)}%
                     </td>
-                    <td className="px-4 py-2.5 text-gray-400">
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">
                       {isEditing
                         ? <input value={editRow.supplier ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, supplier: e.target.value }))} className="w-24 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.supplier || '—'}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-400">
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">
                       {isEditing
                         ? <input type="number" value={editRow.stock ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, stock: parseFloat(e.target.value) || 0 }))} className="w-16 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : item.stock ?? '—'}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${item.isActive ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${item.isActive ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400'}`}>
                         {item.isActive ? 'פעיל' : 'לא פעיל'}
                       </span>
                     </td>
@@ -331,7 +331,7 @@ export default function CatalogPage() {
             העלה קובץ CSV בפורמט הייצוא: מק&ldquo;ט, שם פריט, קטגוריה, יחידה, מחיר מכירה, עלות עצמית, ספק, מלאי
           </p>
           <div>
-            <label className="text-sm text-gray-300 font-medium block mb-1">קובץ CSV *</label>
+            <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">קובץ CSV *</label>
             <input
               type="file"
               accept=".csv,text/csv"
@@ -397,18 +397,18 @@ function CatalogItemForm({
       <div className="grid grid-cols-2 gap-3">
         {/* SKU with generate button */}
         <div>
-          <label className="text-sm text-gray-300 font-medium block mb-1">מק&quot;ט *</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">מק&quot;ט *</label>
           <div className="flex gap-1">
             <input
               value={form.sku}
               onChange={(e) => set('sku', e.target.value)}
               placeholder="SKU-001"
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
               type="button"
               onClick={generateSku}
-              className="px-2 py-2 text-xs text-gray-400 hover:text-blue-400 bg-gray-800 border border-gray-700 rounded-lg transition-colors"
+              className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg transition-colors"
               title="צור מק״ט אוטומטי"
             >
               ✨
@@ -419,13 +419,13 @@ function CatalogItemForm({
 
         {/* Category with datalist */}
         <div>
-          <label className="text-sm text-gray-300 font-medium block mb-1">קטגוריה</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">קטגוריה</label>
           <input
             list="catalog-categories"
             value={form.category}
             onChange={(e) => set('category', e.target.value)}
             placeholder="ריצוף, גבס..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <datalist id="catalog-categories">
             {existingCategories.map((c) => <option key={c} value={c} />)}

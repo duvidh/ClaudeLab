@@ -293,7 +293,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
             value={catalogSearch}
             onChange={(e) => searchCatalog(e.target.value)}
             placeholder='חפש לפי שם, מק"ט או קטגוריה...'
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:ring-2 focus:ring-blue-500"
           />
           {catalogSearch.trim() !== '' && catalogResults.length === 0 && (
             <p className="text-xs text-gray-500 text-center py-3">לא נמצאו תוצאות</p>
@@ -309,7 +309,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                     className="w-full text-right px-3 py-2.5 hover:bg-gray-700 flex items-center justify-between transition-colors"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-white truncate">{cat.name}</p>
+                      <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{cat.name}</p>
                       <p className="text-xs text-gray-500">{cat.sku} · {cat.category ?? '—'} · {cat.unit ?? '—'}</p>
                     </div>
                     <span className="text-xs text-blue-300 shrink-0 ms-3">{formatCurrency(cat.salePrice)}</span>
@@ -331,7 +331,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
       </button>
 
       <div className="flex justify-end">
-        <div className="w-80 bg-gray-800 border border-gray-700 rounded-xl p-4 space-y-2">
+        <div className="w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2">
           <SummaryRow label='סה"כ לפני הנחה' value={formatCurrency(summary.subtotal)} />
 
           <div className="flex items-center justify-between">
@@ -347,7 +347,7 @@ export function QuoteCalculator({ quoteId, initialItems, initialDiscount, onItem
                   body: JSON.stringify({ discount }),
                 })
               }}
-              className="w-24 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white text-left focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-24 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-gray-900 dark:text-white text-left focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -393,7 +393,7 @@ function EditableCell({
         onChange={(e) => setLocal(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setLocal(value); setEditing(false) } }}
-        className="w-full bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none"
+        className="w-full bg-white dark:bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-gray-900 dark:text-white text-xs outline-none"
       />
     )
   }

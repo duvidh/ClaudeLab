@@ -185,10 +185,10 @@ export default function InvoicesPage() {
           action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} />חשבונית חדשה</Button>}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-800/60 border-b border-gray-700 text-gray-400 text-xs">
+              <tr className="bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs">
                 <th className="px-4 py-3 font-semibold text-right">מספר</th>
                 <th className="px-4 py-3 font-semibold text-right">לקוח</th>
                 <th className="px-4 py-3 font-semibold text-right">סכום</th>
@@ -198,23 +198,23 @@ export default function InvoicesPage() {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {invoices.map((inv) => {
                 const isOverdue = !inv.isPaid && inv.dueDate && new Date(inv.dueDate) < new Date()
                 return (
-                  <tr key={inv.id} className="hover:bg-gray-800/30 transition-colors group">
-                    <td className="px-4 py-3 font-mono text-xs text-gray-300">{inv.number}</td>
-                    <td className="px-4 py-3 font-medium text-white">{inv.client.name}</td>
-                    <td className="px-4 py-3 font-semibold text-white">{formatCurrency(inv.amount)}</td>
-                    <td className="px-4 py-3 text-gray-400">{formatDate(inv.date)}</td>
+                  <tr key={inv.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors group">
+                    <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-300">{inv.number}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{inv.client.name}</td>
+                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{formatCurrency(inv.amount)}</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(inv.date)}</td>
                     <td className="px-4 py-3">
                       {inv.dueDate ? (
-                        <span className={isOverdue ? 'text-red-400 font-medium' : 'text-gray-400'}>
+                        <span className={isOverdue ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-500 dark:text-gray-400'}>
                           {formatDate(inv.dueDate)}
                           {isOverdue && <span className="ms-1 text-[10px]">פגה</span>}
                         </span>
                       ) : (
-                        <span className="text-gray-600">—</span>
+                        <span className="text-gray-400 dark:text-gray-600">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -222,8 +222,8 @@ export default function InvoicesPage() {
                         onClick={() => markPaid(inv)}
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all ${
                           inv.isPaid
-                            ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
-                            : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-500/30'
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-500/30'
                         }`}
                       >
                         {inv.isPaid ? <CheckCircle2 size={11} /> : <Clock size={11} />}
@@ -308,12 +308,12 @@ function InvoiceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-gray-400 mb-1">לקוח *</label>
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">לקוח *</label>
         <select
           value={form.clientId}
           onChange={(e) => set('clientId', e.target.value)}
           required
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">בחר לקוח...</option>
           {clients.map((c) => (

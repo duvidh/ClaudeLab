@@ -165,7 +165,7 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-xl font-bold text-white">{lead.fullName}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{lead.fullName}</h1>
             <StatusBadge type="lead" value={lead.status} />
             {isConverted && lead.client && (
               <Link
@@ -247,7 +247,7 @@ export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
                   <select
                     value={lead.assignedToId ?? ''}
                     onChange={(e) => handleAssigneeChange(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">— לא שויך —</option>
                     {employees.map((emp) => (
@@ -692,7 +692,7 @@ function LeadFilesTab({ leadId, initialFiles }: { leadId: string; initialFiles: 
                 <div className="flex items-center gap-3">
                   <FileIcon size={16} className="text-blue-400 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-white">{file.name}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
                     <p className="text-xs text-gray-500">{formatDate(file.createdAt)}</p>
                   </div>
                 </div>
@@ -838,7 +838,7 @@ function MeetingsTab({ leadId, initialMeetings }: { leadId: string; initialMeeti
                 <div className="flex items-start gap-2">
                   <Calendar size={14} className="text-blue-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-white">{meeting.type}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{meeting.type}</p>
                     {meeting.summary && (
                       <p className="text-sm text-gray-400 mt-1">{meeting.summary}</p>
                     )}
@@ -857,13 +857,13 @@ function MeetingsTab({ leadId, initialMeetings }: { leadId: string; initialMeeti
         <form onSubmit={handleAdd} className="space-y-3">
           <Select label="סוג" options={MEETING_TYPE_OPTIONS} value={form.type} onChange={(e) => setF('type', e.target.value)} />
           <Input label="תאריך ושעה *" type="datetime-local" value={form.date} onChange={(e) => setF('date', e.target.value)} />
-          <label className="text-sm text-gray-300 font-medium block">
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block">
             סיכום / הערות
             <textarea
               value={form.summary}
               onChange={(e) => setF('summary', e.target.value)}
               rows={3}
-              className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </label>
           <div className="flex gap-2 pt-1">

@@ -262,11 +262,11 @@ export default function QuoteDetailPage() {
       <div className="grid grid-cols-4 gap-3 mb-6">
         <Card>
           <p className="text-xs text-gray-500 mb-1">תאריך</p>
-          <p className="text-sm font-medium text-white">{formatDate(quote.date)}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(quote.date)}</p>
         </Card>
         <Card>
           <p className="text-xs text-gray-500 mb-1">תוקף</p>
-          <p className="text-sm font-medium text-white">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">{quote.validUntil ? formatDate(quote.validUntil) : '—'}</p>
         </Card>
         <Card>
           <p className="text-xs text-gray-500 mb-1">סטטוס</p>
@@ -274,13 +274,13 @@ export default function QuoteDetailPage() {
         </Card>
         <Card>
           <p className="text-xs text-gray-500 mb-1">גרסה</p>
-          <p className="text-sm font-medium text-white">v{quote.version}</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">v{quote.version}</p>
         </Card>
       </div>
 
       {/* Calculator */}
       <Card>
-        <h2 className="text-base font-semibold text-white mb-4">פירוט פריטים</h2>
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">פירוט פריטים</h2>
         <QuoteCalculator
           quoteId={quote.id}
           initialItems={quote.items ?? []}

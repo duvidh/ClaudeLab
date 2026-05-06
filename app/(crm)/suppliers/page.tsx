@@ -119,14 +119,14 @@ export default function SuppliersPage() {
             placeholder="חיפוש לפי שם, איש קשר, קטגוריה..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {categories.length > 0 && (
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {categoryOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -152,10 +152,10 @@ export default function SuppliersPage() {
           action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} />ספק חדש</Button>}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-800/60 border-b border-gray-700 text-gray-400">
+              <tr className="bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
                 <th className="px-4 py-3 font-semibold text-right">שם ספק</th>
                 <th className="px-4 py-3 font-semibold text-right">איש קשר</th>
                 <th className="px-4 py-3 font-semibold text-right">טלפון</th>
@@ -166,17 +166,17 @@ export default function SuppliersPage() {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {displayed.map((supplier) => {
                 const isEditing = editingId === supplier.id
                 return (
-                  <tr key={supplier.id} className={`hover:bg-gray-800/30 ${!supplier.isActive ? 'opacity-50' : ''}`}>
-                    <td className="px-4 py-2.5 font-medium text-white">
+                  <tr key={supplier.id} className={`bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${!supplier.isActive ? 'opacity-50' : ''}`}>
+                    <td className="px-4 py-2.5 font-medium text-gray-900 dark:text-white">
                       {isEditing
                         ? <input value={editRow.name ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, name: e.target.value }))} className="w-32 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : supplier.name}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-300">
+                    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">
                       {isEditing
                         ? <input value={editRow.contactName ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, contactName: e.target.value }))} className="w-28 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : supplier.contactName || '—'}
@@ -195,14 +195,14 @@ export default function SuppliersPage() {
                           ? <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 text-gray-400 hover:text-blue-400 transition-colors"><Mail size={12} className="text-gray-500" />{supplier.email}</a>
                           : <span className="text-gray-600">—</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-400">
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-gray-400">
                       {isEditing
                         ? <input value={editRow.address ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, address: e.target.value }))} className="w-36 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
                         : supplier.address
                           ? <span className="flex items-center gap-1"><MapPin size={12} className="text-gray-600 shrink-0" />{supplier.address}</span>
                           : '—'}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-300">
+                    <td className="px-4 py-2.5 text-gray-700 dark:text-gray-300">
                       {isEditing
                         ? (
                           <input list="supplier-categories" value={editRow.category ?? ''} onChange={(e) => setEditRow((p) => ({ ...p, category: e.target.value }))} className="w-24 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-white text-xs outline-none" />
@@ -210,7 +210,7 @@ export default function SuppliersPage() {
                         : supplier.category || '—'}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${supplier.isActive ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${supplier.isActive ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400'}`}>
                         {supplier.isActive ? 'פעיל' : 'לא פעיל'}
                       </span>
                     </td>
@@ -291,13 +291,13 @@ function SupplierForm({
         <Input label="טלפון" placeholder="050-0000000" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
         <Input label="אימייל" type="email" placeholder="email@example.com" value={form.email} onChange={(e) => set('email', e.target.value)} />
         <div>
-          <label className="text-sm text-gray-300 font-medium block mb-1">קטגוריה</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">קטגוריה</label>
           <input
             list="supplier-form-categories"
             value={form.category}
             onChange={(e) => set('category', e.target.value)}
             placeholder="חומרי בניה, כלים..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <datalist id="supplier-form-categories">
             {categories.map((c) => <option key={c} value={c} />)}
@@ -307,12 +307,12 @@ function SupplierForm({
           <Input label="כתובת" placeholder="רחוב, עיר" value={form.address} onChange={(e) => set('address', e.target.value)} />
         </div>
         <div className="col-span-2">
-          <label className="text-sm text-gray-300 font-medium block mb-1">הערות</label>
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">הערות</label>
           <textarea
             value={form.notes}
             onChange={(e) => set('notes', e.target.value)}
             rows={2}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>

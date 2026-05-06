@@ -159,7 +159,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
               {client.name.charAt(0)}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">{client.name}</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">{client.name}</h1>
               {client.company && (
                 <p className="text-sm text-gray-400 flex items-center gap-1">
                   <Building2 size={13} />
@@ -257,7 +257,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
                     <Card className="hover:border-gray-600 transition-colors cursor-pointer">
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-white mb-1">{project.name}</p>
+                          <p className="font-medium text-gray-900 dark:text-white mb-1">{project.name}</p>
                           <div className="flex items-center gap-3 text-xs text-gray-400">
                             {project.address && (
                               <span className="flex items-center gap-1">
@@ -404,7 +404,7 @@ export function ClientDetail({ client: initialClient }: ClientDetailProps) {
                 <Card key={task.id}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-white">{task.title}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</p>
                       {task.description && (
                         <p className="text-xs text-gray-400 mt-0.5">{task.description}</p>
                       )}
@@ -696,7 +696,7 @@ function ClientMeetingsTab({ clientId, initialMeetings }: { clientId: string; in
                 <div className="flex items-start gap-2">
                   <Calendar size={14} className="text-blue-400 mt-0.5 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-white">{meeting.type}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{meeting.type}</p>
                     {meeting.summary && (
                       <p className="text-sm text-gray-400 mt-1">{meeting.summary}</p>
                     )}
@@ -715,13 +715,13 @@ function ClientMeetingsTab({ clientId, initialMeetings }: { clientId: string; in
         <form onSubmit={handleAdd} className="space-y-3">
           <Select label="סוג" options={MEETING_TYPE_OPTIONS} value={form.type} onChange={(e) => setF('type', e.target.value)} />
           <Input label="תאריך ושעה *" type="datetime-local" value={form.date} onChange={(e) => setF('date', e.target.value)} />
-          <label className="text-sm text-gray-300 font-medium block">
+          <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block">
             סיכום / הערות
             <textarea
               value={form.summary}
               onChange={(e) => setF('summary', e.target.value)}
               rows={3}
-              className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </label>
           <div className="flex gap-2 pt-1">
@@ -832,7 +832,7 @@ function ClientFilesTab({
                 <div className="flex items-center gap-3">
                   <FileIcon size={18} className="text-gray-400 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-white">{file.name}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{formatDate(file.createdAt)}</p>
                   </div>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${FILE_TYPE_COLORS[file.fileType ?? ''] ?? FILE_TYPE_COLORS.other}`}>
@@ -1018,7 +1018,7 @@ function ClientInvoicesTab({
                 return (
                   <tr key={inv.id} className="hover:bg-gray-800/30">
                     <td className="px-4 py-2.5 font-mono text-xs text-gray-400">{inv.number}</td>
-                    <td className="px-4 py-2.5 font-semibold text-white">{formatCurrency(inv.amount)}</td>
+                    <td className="px-4 py-2.5 font-semibold text-gray-900 dark:text-white">{formatCurrency(inv.amount)}</td>
                     <td className="px-4 py-2.5 text-gray-400">{formatDate(inv.date)}</td>
                     <td className="px-4 py-2.5">
                       {inv.dueDate ? (

@@ -160,7 +160,7 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-xl font-bold text-white">{project.name}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
             <StatusBadge type="project" value={project.status} />
             {delayDays > 0 && (
               <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
@@ -205,7 +205,7 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
                 min={0} max={100}
                 value={progressVal}
                 onChange={(e) => setProgressVal(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
-                className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-0.5 text-sm text-white text-center focus:outline-none"
+                className="w-16 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 text-sm text-gray-900 dark:text-white text-center focus:outline-none"
               />
               <span className="text-gray-400 text-sm">%</span>
               <Button size="sm" onClick={saveProgress}>שמור</Button>
@@ -531,7 +531,7 @@ function ProjectFilesTab({
   return (
     <div>
       <div className="flex justify-end mb-3">
-        <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${uploading ? 'bg-gray-700 text-gray-500' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>
+        <label className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${uploading ? 'bg-gray-200 dark:bg-gray-700 text-gray-500' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}>
           <Upload size={14} />
           {uploading ? 'מעלה...' : 'העלה קובץ'}
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
@@ -554,7 +554,7 @@ function ProjectFilesTab({
                 {isImage(f.name) ? <img src={f.url} alt="" className="w-full h-full object-cover" /> : <FileIcon size={16} className="text-gray-400" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{f.name}</p>
+                <p className="text-sm text-gray-900 dark:text-white truncate">{f.name}</p>
                 <p className="text-xs text-gray-500">{new Date(f.createdAt).toLocaleDateString('he-IL')}</p>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

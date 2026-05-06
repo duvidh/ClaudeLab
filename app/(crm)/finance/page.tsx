@@ -75,9 +75,9 @@ function StatCard({
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm">
-      <p className="text-gray-400 mb-1">{label}</p>
-      <p className="text-white font-semibold">{fmt(payload[0].value)}</p>
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm shadow-sm">
+      <p className="text-gray-500 dark:text-gray-400 mb-1">{label}</p>
+      <p className="text-gray-900 dark:text-white font-semibold">{fmt(payload[0].value)}</p>
     </div>
   )
 }

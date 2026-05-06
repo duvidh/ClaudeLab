@@ -24,12 +24,12 @@ const COLUMN_COLORS: Record<string, string> = {
 }
 
 const COLUMN_HEADER_COLORS: Record<string, string> = {
-  NEW: 'bg-blue-500/10 text-blue-300',
-  CONTACTED: 'bg-yellow-500/10 text-yellow-300',
-  MEETING_SCHEDULED: 'bg-purple-500/10 text-purple-300',
-  QUOTE_SENT: 'bg-orange-500/10 text-orange-300',
-  WON: 'bg-green-500/10 text-green-300',
-  LOST: 'bg-red-500/10 text-red-300',
+  NEW: 'bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-300',
+  CONTACTED: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/10 dark:text-yellow-300',
+  MEETING_SCHEDULED: 'bg-purple-100 text-purple-800 dark:bg-purple-500/10 dark:text-purple-300',
+  QUOTE_SENT: 'bg-orange-100 text-orange-800 dark:bg-orange-500/10 dark:text-orange-300',
+  WON: 'bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-300',
+  LOST: 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-300',
 }
 
 interface LeadsKanbanProps {
@@ -52,7 +52,7 @@ export function LeadsKanban({ leads }: LeadsKanbanProps) {
         return (
           <div
             key={status}
-            className={`flex-shrink-0 w-64 rounded-xl border ${COLUMN_COLORS[status]} bg-gray-800/30`}
+            className={`flex-shrink-0 w-64 rounded-xl border ${COLUMN_COLORS[status]} bg-gray-50 dark:bg-gray-800/30`}
           >
             {/* Column header */}
             <div className={`px-3 py-2.5 rounded-t-xl ${COLUMN_HEADER_COLORS[status]} flex items-center justify-between`}>
@@ -66,21 +66,21 @@ export function LeadsKanban({ leads }: LeadsKanbanProps) {
             <div className="p-2 space-y-2 min-h-[200px]">
               {columnLeads.map((lead) => (
                 <Link key={lead.id} href={`/leads/${lead.id}`}>
-                  <div className="bg-gray-800 border border-gray-700 hover:border-gray-600 rounded-lg p-3 cursor-pointer transition-colors">
-                    <p className="text-sm font-medium text-white mb-1">{lead.fullName}</p>
-                    <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
+                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 rounded-lg p-3 cursor-pointer transition-colors">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{lead.fullName}</p>
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mb-1">
                       <Phone size={11} />
                       {lead.primaryPhone}
                     </div>
                     {lead.city && (
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 mb-2">
                         <MapPin size={11} />
                         {lead.city}
                       </div>
                     )}
                     <div className="flex items-center justify-between">
                       {lead.workType && (
-                        <span className="text-xs text-gray-500">{lead.workType}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{lead.workType}</span>
                       )}
                       <StatusBadge type="priority" value={lead.urgency} />
                     </div>

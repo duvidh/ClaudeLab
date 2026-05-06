@@ -149,17 +149,17 @@ export function MilestoneTimeline({ milestones, projectId, onUpdate }: Milestone
           )}
         </div>
         {hasDates && (
-          <div className="flex bg-gray-800 rounded-lg border border-gray-700 p-0.5 ms-4">
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-0.5 ms-4">
             <button
               onClick={() => setView('list')}
-              className={`p-1.5 rounded transition-colors ${view === 'list' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`p-1.5 rounded transition-colors ${view === 'list' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               title="תצוגת רשימה"
             >
               <LayoutList size={15} />
             </button>
             <button
               onClick={() => setView('gantt')}
-              className={`p-1.5 rounded transition-colors ${view === 'gantt' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+              className={`p-1.5 rounded transition-colors ${view === 'gantt' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
               title="תצוגת ציר זמן"
             >
               <BarChart2 size={15} />

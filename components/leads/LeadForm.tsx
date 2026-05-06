@@ -146,7 +146,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* פרטי ליד */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
           פרטי הליד
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -190,7 +190,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
               placeholder="תל אביב"
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <datalist id="lead-form-cities">
               {lists.cities.map((c) => <option key={c} value={c} />)}
@@ -254,7 +254,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
 
       {/* פרטי פרויקט */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
           פרטי פרויקט מבוקש
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -265,7 +265,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
               placeholder="שיפוץ, בניה חדשה..."
               value={form.workType}
               onChange={(e) => set('workType', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <datalist id="lead-form-worktypes">
               {lists.workTypes.map((w) => <option key={w} value={w} />)}
@@ -301,7 +301,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
               value={form.needDescription}
               onChange={(e) => set('needDescription', e.target.value)}
               rows={3}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </FormField>
           <div className="col-span-2 flex items-center gap-2">
@@ -312,7 +312,7 @@ export function LeadForm({ initialData, onSubmit, onCancel }: LeadFormProps) {
               onChange={(e) => set('buildingPermit', e.target.checked)}
               className="w-4 h-4 rounded accent-blue-500"
             />
-            <label htmlFor="buildingPermit" className="text-sm text-gray-300">
+            <label htmlFor="buildingPermit" className="text-sm text-gray-700 dark:text-gray-300">
               יש היתר בניה
             </label>
           </div>

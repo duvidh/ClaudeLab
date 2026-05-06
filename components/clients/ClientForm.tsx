@@ -109,7 +109,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
           פרטי לקוח
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -188,7 +188,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
               placeholder="תל אביב"
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <datalist id="client-form-cities">
               {lists.cities.map((c) => <option key={c} value={c} />)}
@@ -223,7 +223,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
 
       {/* Phones */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
           טלפונים
         </h3>
         <div className="space-y-2">
@@ -267,7 +267,7 @@ export function ClientForm({ initialData, onSubmit, onCancel }: ClientFormProps)
             onChange={(e) => set('notes', e.target.value)}
             rows={3}
             placeholder="הערות כלליות על הלקוח..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </FormField>
       </section>
