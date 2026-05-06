@@ -78,9 +78,14 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
     enableWBS: false,
     enableProcurement: false,
   })
-  const [activeTab, setActiveTab] = useState(() => {
-    try { return localStorage.getItem(`tab-project-${initialProject.id}`) ?? 'overview' } catch { return 'overview' }
-  })
+  const [activeTab, setActiveTab] = useState('overview')
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`tab-project-${initialProject.id}`)
+      if (saved) setActiveTab(saved)
+    } catch {}
+  }, [initialProject.id])
 
   useEffect(() => {
     fetch(`/api/projects/${initialProject.id}/settings`)

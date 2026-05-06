@@ -60,11 +60,16 @@ type EmployeeOption = { id: string; name: string; position: string | null }
 
 export function LeadDetail({ lead: initialLead }: LeadDetailProps) {
   const [lead, setLead] = useState(initialLead)
-  const [activeTab, setActiveTab] = useState(() => {
-    try { return localStorage.getItem(`tab-lead-${initialLead.id}`) ?? 'details' } catch { return 'details' }
-  })
+  const [activeTab, setActiveTab] = useState('details')
   const [quotesCount, setQuotesCount] = useState<number | undefined>(undefined)
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`tab-lead-${initialLead.id}`)
+      if (saved) setActiveTab(saved)
+    } catch {}
+  }, [initialLead.id])
 
   useEffect(() => {
     fetch('/api/employees?status=ACTIVE')
