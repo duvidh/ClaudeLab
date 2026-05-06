@@ -281,8 +281,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4
-">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <KPICard
           icon={Users}
           label="לידים פעילים"
@@ -338,8 +337,7 @@ export default function DashboardPage() {
                 לדוח מלא <ArrowLeft size={11} />
               </span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
->
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ חוזים</p>
                 <p className="text-base font-bold text-gray-900 dark:text-white">{formatCurrency(finData.totalContracts)}</p>
@@ -399,10 +397,9 @@ export default function DashboardPage() {
         )}
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
->
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* Lead pipeline */}
-        <Card className="col-span-1">
+        <Card className="md:col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">משפך לידים</h2>
             <Link href="/leads" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
@@ -432,7 +429,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Active projects */}
-        <Card className="col-span-2">
+        <Card className="md:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">פרויקטים פעילים</h2>
             <Link href="/projects" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
@@ -475,8 +472,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
->
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Upcoming tasks */}
         <Card>
           <div className="flex items-center justify-between mb-4">

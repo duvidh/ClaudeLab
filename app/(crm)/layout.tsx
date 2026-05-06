@@ -15,7 +15,7 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Header onMenuOpen={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto">
-          <div className="p-6">{children}</div>
+          <div className="p-4 md:p-6 pb-20 md:pb-6">{children}</div>
         </main>
       </div>
       <FloatingActionButton />

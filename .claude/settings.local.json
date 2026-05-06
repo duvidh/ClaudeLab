@@ -10,7 +10,13 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(mkdir -p \"prisma/migrations/20260503160000_sprint4_tasks_activities\")"
+      "Bash(mkdir -p \"prisma/migrations/20260503160000_sprint4_tasks_activities\")",
+      "Bash(curl *)",
+      "Bash(node -e \"fetch\\('http://localhost:3000/api/projects/seed-proj-001/work-packages'\\).then\\(r=>r.json\\(\\)\\).then\\(j=>j.data.forEach\\(w=>console.log\\(JSON.stringify\\({id:w.id,name:w.name,budget:w.budget,status:w.status}\\)\\)\\)\\)\")",
+      "Bash(node -e \"fetch\\('http://localhost:3000/api/projects/seed-proj-001/work-packages'\\).then\\(r=>r.json\\(\\)\\).then\\(j=>{const name=j.data[0]?.name||'';const hex=[...name].map\\(c=>c.codePointAt\\(0\\).toString\\(16\\)\\).join\\(' '\\);console.log\\('hex:',hex\\)}\\)\")",
+      "Bash(git checkout *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User.DESKTOP-R26AVG6\\\\Documents\\\\ClaudesLab\\\\Demo\\\\construction-crm\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }

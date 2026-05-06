@@ -152,7 +152,58 @@ export default function SuppliersPage() {
           action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} />ספק חדש</Button>}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <>
+        {/* Mobile: card list */}
+        <div className="md:hidden space-y-3">
+          {displayed.map((supplier) => (
+            <div key={supplier.id} className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm ${!supplier.isActive ? 'opacity-50' : ''}`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">{supplier.name}</p>
+                  {supplier.contactName && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{supplier.contactName}</p>}
+                </div>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${supplier.isActive ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400'}`}>
+                  {supplier.isActive ? 'פעיל' : 'לא פעיל'}
+                </span>
+              </div>
+              <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400 mb-3">
+                {supplier.phone && (
+                  <a href={`tel:${supplier.phone}`} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400">
+                    <Phone size={12} className="shrink-0 text-gray-400" />{supplier.phone}
+                  </a>
+                )}
+                {supplier.email && (
+                  <a href={`mailto:${supplier.email}`} className="flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 truncate">
+                    <Mail size={12} className="shrink-0 text-gray-400" />{supplier.email}
+                  </a>
+                )}
+                {supplier.address && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin size={12} className="shrink-0 text-gray-400" />{supplier.address}
+                  </div>
+                )}
+                {supplier.category && <div className="text-gray-500 dark:text-gray-400">{supplier.category}</div>}
+              </div>
+              <div className="flex items-center justify-end gap-1 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  onClick={() => { setEditingId(supplier.id); setEditRow({ ...supplier }) }}
+                  className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+                >
+                  <Pencil size={15} />
+                </button>
+                <button
+                  onClick={() => toggleActive(supplier)}
+                  className={`p-2 min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors ${supplier.isActive ? 'text-gray-400 hover:text-red-500' : 'text-gray-400 hover:text-green-500'}`}
+                >
+                  <Power size={15} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: standard table */}
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
@@ -237,6 +288,7 @@ export default function SuppliersPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <datalist id="supplier-categories">
@@ -283,7 +335,7 @@ function SupplierForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="col-span-2">
           <Input label="שם ספק *" placeholder="שם החברה / הספק" value={form.name} onChange={(e) => set('name', e.target.value)} />
         </div>

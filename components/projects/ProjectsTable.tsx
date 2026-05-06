@@ -86,86 +86,150 @@ export function ProjectsTable({ projects: initialProjects, onDelete }: ProjectsT
 
   return (
     <>
-      <DataTable
-        headers={[
-          <Th key="name" label="שם פרויקט" active={sortField === 'name'} sortDir={sortDir} onClick={() => toggleSort('name')} />,
-          <Th key="clientName" label="לקוח" active={sortField === 'clientName'} sortDir={sortDir} onClick={() => toggleSort('clientName')} />,
-          'כתובת',
-          'מנהל',
-          <Th key="progressPercent" label="התקדמות" active={sortField === 'progressPercent'} sortDir={sortDir} onClick={() => toggleSort('progressPercent')} />,
-          <Th key="contractValue" label="שולם / חוזה" active={sortField === 'contractValue'} sortDir={sortDir} onClick={() => toggleSort('contractValue')} />,
-          <Th key="status" label="סטטוס" active={sortField === 'status'} sortDir={sortDir} onClick={() => toggleSort('status')} />,
-          <Th key="startDate" label="התחלה" active={sortField === 'startDate'} sortDir={sortDir} onClick={() => toggleSort('startDate')} />,
-          <th key="actions" className="px-4 py-3" />,
-        ]}
-        data={sorted}
-        renderRow={(project) => (
-          <tr key={project.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
-            <td className="px-4 py-3">
-              <Link href={`/projects/${project.id}`} className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-                {project.name}
-              </Link>
-            </td>
-            <td className="px-4 py-3">
-              <Link href={`/clients/${project.client.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
-                <User size={13} />
+      {/* Mobile: card list */}
+      <div className="md:hidden space-y-3">
+        {sorted.map((project) => {
+          const totalPaid = project.payments.reduce((s, p) => s + p.amount, 0)
+          return (
+            <div key={project.id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <Link href={`/projects/${project.id}`} className="font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 truncate block">
+                  {project.name}
+                </Link>
+                <StatusBadge type="project" value={project.status} />
+              </div>
+
+              <Link href={`/clients/${project.client.id}`} className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-2">
+                <User size={13} className="shrink-0" />
                 {project.client.name}
               </Link>
-            </td>
-            <td className="px-4 py-3">
+
               {project.address && (
-                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                  <MapPin size={13} className="text-gray-400 dark:text-gray-600" />
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                  <MapPin size={12} className="shrink-0" />
                   {project.address}
                 </div>
               )}
-            </td>
-            <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{project.projectManager || '—'}</td>
-            <td className="px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+
+              <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${project.progressPercent}%` }} />
                 </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">{project.progressPercent}%</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">{project.progressPercent}%</span>
               </div>
-            </td>
-            <td className="px-4 py-3">
-              {project.contractValue > 0 ? (
-                <div>
+
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                {project.contractValue > 0 ? (
                   <div className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                    {formatCurrency(project.payments.reduce((s, p) => s + p.amount, 0))}
-                    <span className="text-gray-500"> / {formatCurrency(project.contractValue)}</span>
+                    {formatCurrency(totalPaid)}
+                    <span className="text-gray-400 dark:text-gray-500"> / {formatCurrency(project.contractValue)}</span>
                   </div>
-                  <div className="mt-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-24">
-                    <div
-                      className="h-full bg-green-500 rounded-full"
-                      style={{ width: `${Math.min(100, (project.payments.reduce((s, p) => s + p.amount, 0) / project.contractValue) * 100)}%` }}
-                    />
-                  </div>
+                ) : <span className="text-xs text-gray-400 dark:text-gray-500">—</span>}
+
+                <div className="flex items-center gap-2">
+                  {project.startDate && (
+                    <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                      <Calendar size={11} />
+                      {formatDate(project.startDate)}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setConfirmId(project.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-              ) : <span className="text-gray-400 dark:text-gray-500">—</span>}
-            </td>
-            <td className="px-4 py-3">
-              <StatusBadge type="project" value={project.status} />
-            </td>
-            <td className="px-4 py-3">
-              {project.startDate && (
-                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs">
-                  <Calendar size={11} />
-                  {formatDate(project.startDate)}
-                </div>
-              )}
-            </td>
-            <td className="px-4 py-3">
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setConfirmId(project.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
-                  <Trash2 size={14} />
-                </button>
               </div>
-            </td>
-          </tr>
-        )}
-      />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: standard table */}
+      <div className="hidden md:block">
+        <DataTable
+          headers={[
+            <Th key="name" label="שם פרויקט" active={sortField === 'name'} sortDir={sortDir} onClick={() => toggleSort('name')} />,
+            <Th key="clientName" label="לקוח" active={sortField === 'clientName'} sortDir={sortDir} onClick={() => toggleSort('clientName')} />,
+            'כתובת',
+            'מנהל',
+            <Th key="progressPercent" label="התקדמות" active={sortField === 'progressPercent'} sortDir={sortDir} onClick={() => toggleSort('progressPercent')} />,
+            <Th key="contractValue" label="שולם / חוזה" active={sortField === 'contractValue'} sortDir={sortDir} onClick={() => toggleSort('contractValue')} />,
+            <Th key="status" label="סטטוס" active={sortField === 'status'} sortDir={sortDir} onClick={() => toggleSort('status')} />,
+            <Th key="startDate" label="התחלה" active={sortField === 'startDate'} sortDir={sortDir} onClick={() => toggleSort('startDate')} />,
+            <th key="actions" className="px-4 py-3" />,
+          ]}
+          data={sorted}
+          renderRow={(project) => (
+            <tr key={project.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
+              <td className="px-4 py-3">
+                <Link href={`/projects/${project.id}`} className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
+                  {project.name}
+                </Link>
+              </td>
+              <td className="px-4 py-3">
+                <Link href={`/clients/${project.client.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                  <User size={13} />
+                  {project.client.name}
+                </Link>
+              </td>
+              <td className="px-4 py-3">
+                {project.address && (
+                  <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                    <MapPin size={13} className="text-gray-400 dark:text-gray-600" />
+                    {project.address}
+                  </div>
+                )}
+              </td>
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{project.projectManager || '—'}</td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${project.progressPercent}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{project.progressPercent}%</span>
+                </div>
+              </td>
+              <td className="px-4 py-3">
+                {project.contractValue > 0 ? (
+                  <div>
+                    <div className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                      {formatCurrency(project.payments.reduce((s, p) => s + p.amount, 0))}
+                      <span className="text-gray-500"> / {formatCurrency(project.contractValue)}</span>
+                    </div>
+                    <div className="mt-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-24">
+                      <div
+                        className="h-full bg-green-500 rounded-full"
+                        style={{ width: `${Math.min(100, (project.payments.reduce((s, p) => s + p.amount, 0) / project.contractValue) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : <span className="text-gray-400 dark:text-gray-500">—</span>}
+              </td>
+              <td className="px-4 py-3">
+                <StatusBadge type="project" value={project.status} />
+              </td>
+              <td className="px-4 py-3">
+                {project.startDate && (
+                  <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs">
+                    <Calendar size={11} />
+                    {formatDate(project.startDate)}
+                  </div>
+                )}
+              </td>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => setConfirmId(project.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          )}
+        />
+      </div>
+
       <ConfirmModal open={!!confirmId} onClose={() => setConfirmId(null)} onConfirm={handleDelete}
         title="מחיקת פרויקט" message={`האם למחוק את "${confirmProject?.name}"? כל אבני הדרך, הצעות המחיר והתשלומים הקשורים יימחקו.`}
         confirmLabel="מחק" loading={deleting} />
