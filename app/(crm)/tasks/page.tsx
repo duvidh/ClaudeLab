@@ -168,17 +168,17 @@ export default function TasksPage() {
         actions={
           <div className="flex items-center gap-2">
             {/* List / Kanban toggle */}
-            <div className="flex bg-gray-800 rounded-lg p-0.5 border border-gray-700">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setView('list')}
-                className={`p-1.5 rounded transition-colors ${view === 'list' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${view === 'list' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                 title="תצוגת רשימה"
               >
                 <List size={15} />
               </button>
               <button
                 onClick={() => setView('kanban')}
-                className={`p-1.5 rounded transition-colors ${view === 'kanban' ? 'bg-gray-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${view === 'kanban' ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                 title="תצוגת לוח"
               >
                 <LayoutDashboard size={15} />
@@ -256,26 +256,26 @@ function TaskRow({
       <button
         onClick={() => onCycle(task)}
         className={`shrink-0 transition-colors ${
-          task.status === 'DONE' ? 'text-green-400' :
-          task.status === 'IN_PROGRESS' ? 'text-blue-400' :
-          'text-gray-500 hover:text-gray-300'
+          task.status === 'DONE' ? 'text-green-500 dark:text-green-400' :
+          task.status === 'IN_PROGRESS' ? 'text-blue-500 dark:text-blue-400' :
+          'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
         }`}
       >
         <Icon size={20} />
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className={`text-sm font-medium ${task.status === 'DONE' ? 'line-through text-gray-500' : 'text-white'}`}>
+          <p className={`text-sm font-medium ${task.status === 'DONE' ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
             {task.title}
           </p>
           {task.taskType && task.taskType !== 'TASK' && (
-            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">
+            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
               {TASK_TYPE_LABELS[task.taskType] ?? task.taskType}
             </span>
           )}
         </div>
-        {task.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{task.description}</p>}
-        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+        {task.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{task.description}</p>}
+        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
           {task.client && <span>👤 {task.client.name}</span>}
           {task.project && <span>📁 {task.project.name}</span>}
           {task.lead && <span>🎯 {task.lead.fullName}</span>}
@@ -285,13 +285,13 @@ function TaskRow({
       <div className="flex items-center gap-2 shrink-0">
         <StatusBadge type="priority" value={task.priority} />
         {task.dueDate && (
-          <span className={`text-xs ${isOverdue ? 'text-red-400' : 'text-gray-500'}`}>
+          <span className={`text-xs ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
             {formatDate(task.dueDate)}
           </span>
         )}
         <button
           onClick={() => onDelete(task.id)}
-          className="p-1 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
         >
           <Trash2 size={13} />
         </button>
@@ -303,7 +303,7 @@ function TaskRow({
 // ─── Kanban view ──────────────────────────────────────────────────────────────
 
 const KANBAN_COLUMNS = [
-  { status: 'PENDING', label: 'ממתין', color: 'border-gray-600', dot: 'bg-gray-400' },
+  { status: 'PENDING', label: 'ממתין', color: 'border-gray-400 dark:border-gray-600', dot: 'bg-gray-400' },
   { status: 'IN_PROGRESS', label: 'בביצוע', color: 'border-blue-500/50', dot: 'bg-blue-400' },
   { status: 'DONE', label: 'הושלם', color: 'border-green-500/50', dot: 'bg-green-400' },
 ]
@@ -329,12 +329,12 @@ function KanbanView({
             <div className={`flex items-center justify-between mb-3 pb-2 border-b-2 ${col.color}`}>
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                <span className="text-sm font-semibold text-gray-300">{col.label}</span>
-                <span className="text-xs text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded-full">{colTasks.length}</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{col.label}</span>
+                <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full">{colTasks.length}</span>
               </div>
               <button
                 onClick={() => onAddInColumn(col.status)}
-                className="p-1 text-gray-500 hover:text-white transition-colors"
+                className="p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                 title="הוסף משימה"
               >
                 <Plus size={14} />
@@ -344,30 +344,30 @@ function KanbanView({
             {/* Cards */}
             <div className="space-y-2">
               {colTasks.length === 0 ? (
-                <div className="text-center py-6 text-xs text-gray-600 border border-dashed border-gray-700 rounded-lg">
+                <div className="text-center py-6 text-xs text-gray-400 dark:text-gray-600 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
                   אין משימות
                 </div>
               ) : (
                 colTasks.map((task) => {
                   const isOverdue = task.dueDate && task.status !== 'DONE' && new Date(task.dueDate) < new Date()
                   return (
-                    <div key={task.id} className="group bg-gray-800 rounded-lg p-3 border border-gray-700 hover:border-gray-600 transition-colors">
+                    <div key={task.id} className="group bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className={`text-sm font-medium leading-snug ${task.status === 'DONE' ? 'line-through text-gray-500' : 'text-white'}`}>
+                        <p className={`text-sm font-medium leading-snug ${task.status === 'DONE' ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-white'}`}>
                           {task.title}
                         </p>
                         <button
                           onClick={() => onDelete(task.id)}
-                          className="p-0.5 text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                          className="p-0.5 text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                         >
                           <Trash2 size={12} />
                         </button>
                       </div>
                       {task.description && (
-                        <p className="text-xs text-gray-500 mb-2 line-clamp-2">{task.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">{task.description}</p>
                       )}
                       <div className="flex items-center justify-between">
-                        <div className="flex flex-col gap-0.5 text-xs text-gray-500">
+                        <div className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
                           {task.client && <span>👤 {task.client.name}</span>}
                           {task.project && <span>📁 {task.project.name}</span>}
                           {(task.employee?.name ?? task.assignedTo) && <span>→ {task.employee?.name ?? task.assignedTo}</span>}
@@ -375,7 +375,7 @@ function KanbanView({
                         <div className="flex flex-col items-end gap-1">
                           <StatusBadge type="priority" value={task.priority} />
                           {task.dueDate && (
-                            <span className={`text-xs ${isOverdue ? 'text-red-400' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                               {formatDate(task.dueDate)}
                             </span>
                           )}
@@ -384,7 +384,7 @@ function KanbanView({
                       {/* Cycle to next status */}
                       <button
                         onClick={() => onCycle(task)}
-                        className="mt-2 w-full text-xs text-gray-600 hover:text-blue-400 transition-colors text-center py-0.5"
+                        className="mt-2 w-full text-xs text-gray-400 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center py-0.5"
                       >
                         {task.status === 'PENDING' ? 'התחל ←' : task.status === 'IN_PROGRESS' ? 'סיים ✓' : 'אפס ↺'}
                       </button>
@@ -482,13 +482,13 @@ function TaskForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <Input label="כותרת *" placeholder="תיאור המשימה" value={form.title} onChange={(e) => set('title', e.target.value)} />
-      <label className="text-sm text-gray-300 font-medium block">
+      <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block">
         פירוט
         <textarea
           value={form.description}
           onChange={(e) => set('description', e.target.value)}
           rows={2}
-          className="mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </label>
       <div className="grid grid-cols-2 gap-3">

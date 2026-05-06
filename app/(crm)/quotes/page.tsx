@@ -74,7 +74,7 @@ export default function QuotesPage() {
         <div className="w-44">
           <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
         </div>
-        <button onClick={fetchQuotes} className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg">
+        <button onClick={fetchQuotes} className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>

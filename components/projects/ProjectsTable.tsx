@@ -25,11 +25,11 @@ type SortDir = 'asc' | 'desc'
 
 function Th({ label, active, sortDir, onClick }: { label: string; active: boolean; sortDir: SortDir; onClick: () => void }) {
   return (
-    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors">
+    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right cursor-pointer hover:text-gray-900 dark:hover:text-white select-none transition-colors">
       <span className="inline-flex items-center gap-1">
         {label}
         {active
-          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-600 dark:text-blue-400" /> : <ChevronDown size={12} className="text-blue-600 dark:text-blue-400" />
           : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
       </span>
     </th>
@@ -100,57 +100,57 @@ export function ProjectsTable({ projects: initialProjects, onDelete }: ProjectsT
         ]}
         data={sorted}
         renderRow={(project) => (
-          <tr key={project.id} className="hover:bg-gray-800/40 transition-colors group">
+          <tr key={project.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
             <td className="px-4 py-3">
-              <Link href={`/projects/${project.id}`} className="font-medium text-white hover:text-blue-300 transition-colors">
+              <Link href={`/projects/${project.id}`} className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
                 {project.name}
               </Link>
             </td>
             <td className="px-4 py-3">
-              <Link href={`/clients/${project.client.id}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300">
+              <Link href={`/clients/${project.client.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
                 <User size={13} />
                 {project.client.name}
               </Link>
             </td>
             <td className="px-4 py-3">
               {project.address && (
-                <div className="flex items-center gap-1 text-gray-400">
-                  <MapPin size={13} className="text-gray-600" />
+                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                  <MapPin size={13} className="text-gray-400 dark:text-gray-600" />
                   {project.address}
                 </div>
               )}
             </td>
-            <td className="px-4 py-3 text-gray-400">{project.projectManager || '—'}</td>
+            <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{project.projectManager || '—'}</td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-2">
-                <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: `${project.progressPercent}%` }} />
                 </div>
-                <span className="text-xs text-gray-400">{project.progressPercent}%</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{project.progressPercent}%</span>
               </div>
             </td>
             <td className="px-4 py-3">
               {project.contractValue > 0 ? (
                 <div>
-                  <div className="text-xs font-medium text-gray-200">
+                  <div className="text-xs font-medium text-gray-800 dark:text-gray-200">
                     {formatCurrency(project.payments.reduce((s, p) => s + p.amount, 0))}
                     <span className="text-gray-500"> / {formatCurrency(project.contractValue)}</span>
                   </div>
-                  <div className="mt-1 h-1 bg-gray-700 rounded-full overflow-hidden w-24">
+                  <div className="mt-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden w-24">
                     <div
                       className="h-full bg-green-500 rounded-full"
                       style={{ width: `${Math.min(100, (project.payments.reduce((s, p) => s + p.amount, 0) / project.contractValue) * 100)}%` }}
                     />
                   </div>
                 </div>
-              ) : <span className="text-gray-500">—</span>}
+              ) : <span className="text-gray-400 dark:text-gray-500">—</span>}
             </td>
             <td className="px-4 py-3">
               <StatusBadge type="project" value={project.status} />
             </td>
             <td className="px-4 py-3">
               {project.startDate && (
-                <div className="flex items-center gap-1 text-gray-400 text-xs">
+                <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs">
                   <Calendar size={11} />
                   {formatDate(project.startDate)}
                 </div>
@@ -158,7 +158,7 @@ export function ProjectsTable({ projects: initialProjects, onDelete }: ProjectsT
             </td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setConfirmId(project.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
+                <button onClick={() => setConfirmId(project.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
                   <Trash2 size={14} />
                 </button>
               </div>

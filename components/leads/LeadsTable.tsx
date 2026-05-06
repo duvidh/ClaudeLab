@@ -24,11 +24,11 @@ type SortField = 'fullName' | 'city' | 'urgency' | 'status' | 'entryDate' | 'ass
 
 function Th({ label, active, sortDir, onClick }: { label: string; active: boolean; sortDir: 'asc' | 'desc'; onClick: () => void }) {
   return (
-    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors">
+    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right cursor-pointer hover:text-gray-900 dark:hover:text-white select-none transition-colors">
       <span className="inline-flex items-center gap-1">
         {label}
         {active
-          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-600 dark:text-blue-400" /> : <ChevronDown size={12} className="text-blue-600 dark:text-blue-400" />
           : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
       </span>
     </th>
@@ -120,35 +120,35 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
         ]}
         data={sorted}
         renderRow={(lead) => (
-          <tr key={lead.id} className="hover:bg-gray-800/40 transition-colors group">
+          <tr key={lead.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
             <td className="px-4 py-3">
-              <Link href={`/leads/${lead.id}`} className="font-medium text-white hover:text-blue-300 transition-colors">
+              <Link href={`/leads/${lead.id}`} className="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
                 {lead.fullName}
               </Link>
               {lead.email && (
                 <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
                   <Mail size={11} />
-                  <a href={`mailto:${lead.email}`} className="hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                  <a href={`mailto:${lead.email}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>
                     {lead.email}
                   </a>
                 </div>
               )}
             </td>
             <td className="px-4 py-3">
-              <a href={`tel:${lead.primaryPhone}`} className="flex items-center gap-1 text-gray-300 hover:text-blue-400 transition-colors">
-                <Phone size={13} className="text-gray-500" />
+              <a href={`tel:${lead.primaryPhone}`} className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <Phone size={13} className="text-gray-400 dark:text-gray-500" />
                 {lead.primaryPhone}
               </a>
             </td>
             <td className="px-4 py-3">
               {lead.city && (
-                <div className="flex items-center gap-1 text-gray-300">
-                  <MapPin size={13} className="text-gray-500" />
+                <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                  <MapPin size={13} className="text-gray-400 dark:text-gray-500" />
                   {lead.city}
                 </div>
               )}
             </td>
-            <td className="px-4 py-3 text-gray-300">{lead.workType || '—'}</td>
+            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{lead.workType || '—'}</td>
             <td className="px-4 py-3"><StatusBadge type="priority" value={lead.urgency} /></td>
             <td className="px-4 py-3">
               {lead.status === 'CONVERTED' ? (
@@ -159,12 +159,12 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
                     <StatusBadge type="lead" value={lead.status} />
                   </button>
                   {openStatusId === lead.id && (
-                    <div className="absolute top-full mt-1 right-0 z-50 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[150px]">
+                    <div className="absolute top-full mt-1 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 min-w-[150px]">
                       {LEAD_STATUS_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
                           onClick={() => handleStatusChange(lead.id, opt.value)}
-                          className={`w-full text-right px-3 py-1.5 text-xs hover:bg-gray-700 transition-colors ${lead.status === opt.value ? 'text-blue-400 font-medium' : 'text-gray-300'}`}
+                          className={`w-full text-right px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${lead.status === opt.value ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
                         >
                           {opt.label}
                         </button>
@@ -175,15 +175,15 @@ export function LeadsTable({ leads: initialLeads, onDelete }: LeadsTableProps) {
               )}
             </td>
             <td className="px-4 py-3">
-              <div className="flex items-center gap-1 text-gray-400 text-xs">
+              <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400 text-xs">
                 <Calendar size={11} />
                 {formatDate(lead.entryDate)}
               </div>
             </td>
-            <td className="px-4 py-3 text-gray-400 text-xs">{lead.assignedRep || '—'}</td>
+            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{lead.assignedRep || '—'}</td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setConfirmId(lead.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
+                <button onClick={() => setConfirmId(lead.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
                   <Trash2 size={14} />
                 </button>
               </div>

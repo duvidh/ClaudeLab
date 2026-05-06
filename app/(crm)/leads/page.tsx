@@ -117,7 +117,7 @@ export default function LeadsPage() {
               onClick={() => exportLeadsCSV(leads)}
               disabled={leads.length === 0}
               title="ייצוא CSV"
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Download size={16} />
             </button>
@@ -137,7 +137,7 @@ export default function LeadsPage() {
             placeholder="חיפוש לפי שם, טלפון, עיר..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -164,23 +164,23 @@ export default function LeadsPage() {
 
         <button
           onClick={fetchLeads}
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           title="רענן"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
         </button>
 
         {/* View toggle */}
-        <div className="flex bg-gray-800 rounded-lg border border-gray-700 p-0.5">
+        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-0.5">
           <button
             onClick={() => setView('table')}
-            className={`p-1.5 rounded transition-colors ${view === 'table' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${view === 'table' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
           >
             <LayoutList size={16} />
           </button>
           <button
             onClick={() => setView('kanban')}
-            className={`p-1.5 rounded transition-colors ${view === 'kanban' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${view === 'kanban' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
           >
             <LayoutGrid size={16} />
           </button>

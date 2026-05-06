@@ -27,7 +27,7 @@ export function ConfirmModal({
         <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
           <AlertTriangle size={20} className="text-yellow-400" />
         </div>
-        <p className="text-sm text-gray-300 leading-relaxed pt-2">{message}</p>
+        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pt-2">{message}</p>
       </div>
       <div className="flex gap-2 justify-end">
         <Button variant="secondary" onClick={onClose} disabled={loading}>

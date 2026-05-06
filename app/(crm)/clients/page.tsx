@@ -99,7 +99,7 @@ export default function ClientsPage() {
               onClick={() => exportClientsCSV(clients)}
               disabled={clients.length === 0}
               title="ייצוא CSV"
-              className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Download size={16} />
             </button>
@@ -118,7 +118,7 @@ export default function ClientsPage() {
             placeholder="חיפוש לפי שם, אימייל, עיר..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="w-36">
@@ -130,7 +130,7 @@ export default function ClientsPage() {
         </div>
         <button
           onClick={fetchClients}
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
         </button>

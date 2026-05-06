@@ -159,37 +159,37 @@ export default function EmployeesPage() {
           action={<Button onClick={() => setCreateOpen(true)}><Plus size={14} />עובד חדש</Button>}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-800/60 border-b border-gray-700">
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">שם</th>
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">תפקיד</th>
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">סוג</th>
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">שכר</th>
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">סטטוס</th>
-                <th className="px-4 py-3 font-semibold text-gray-400 text-right">תחילת עבודה</th>
+              <tr className="bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">שם</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">תפקיד</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">סוג</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">שכר</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">סטטוס</th>
+                <th className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right">תחילת עבודה</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {employees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-gray-800/40 transition-colors group">
+                <tr key={emp.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
                         {emp.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-white">{emp.name}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{emp.name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           {emp.phone && (
-                            <a href={`tel:${emp.phone}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-400 transition-colors">
+                            <a href={`tel:${emp.phone}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                               <Phone size={10} />{emp.phone}
                             </a>
                           )}
                           {emp.email && (
-                            <a href={`mailto:${emp.email}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-400 transition-colors">
+                            <a href={`mailto:${emp.email}`} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                               <Mail size={10} />{emp.email}
                             </a>
                           )}
@@ -197,51 +197,51 @@ export default function EmployeesPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-300">{emp.position || '—'}</td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{emp.position || '—'}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       emp.role === 'INTERNAL'
-                        ? 'bg-blue-500/20 text-blue-300'
-                        : 'bg-orange-500/20 text-orange-300'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
+                        : 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'
                     }`}>
                       {ROLE_LABELS[emp.role] ?? emp.role}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-gray-200 font-medium">{formatCurrency(emp.wageAmount)}</p>
+                    <p className="text-gray-800 dark:text-gray-200 font-medium">{formatCurrency(emp.wageAmount)}</p>
                     <p className="text-xs text-gray-500">{WAGE_TYPE_LABELS[emp.wageType] ?? emp.wageType}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       emp.status === 'ACTIVE'
-                        ? 'bg-green-500/20 text-green-300'
-                        : 'bg-gray-500/20 text-gray-400'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400'
                     }`}>
                       {emp.status === 'ACTIVE' ? 'פעיל' : 'לא פעיל'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                     {emp.startDate ? formatDate(emp.startDate) : '—'}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setEditEmployee(emp)}
-                        className="p-1.5 text-gray-500 hover:text-blue-400 transition-colors"
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         title="עריכה"
                       >
                         <Pencil size={14} />
                       </button>
                       <button
                         onClick={() => handleToggleStatus(emp)}
-                        className={`p-1.5 transition-colors ${emp.status === 'ACTIVE' ? 'text-gray-500 hover:text-amber-400' : 'text-gray-500 hover:text-green-400'}`}
+                        className={`p-1.5 transition-colors ${emp.status === 'ACTIVE' ? 'text-gray-400 dark:text-gray-500 hover:text-amber-500 dark:hover:text-amber-400' : 'text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400'}`}
                         title={emp.status === 'ACTIVE' ? 'השבת עובד' : 'הפעל עובד'}
                       >
                         {emp.status === 'ACTIVE' ? <PowerOff size={14} /> : <Power size={14} />}
                       </button>
                       <button
                         onClick={() => setDeleteId(emp.id)}
-                        className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         title="מחק לצמיתות"
                       >
                         <Trash2 size={14} />
@@ -363,32 +363,22 @@ function EmployeeForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">פרטים אישיים</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">פרטים אישיים</h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Input label="שם מלא *" placeholder="ישראל ישראלי" value={form.name} onChange={(e) => set('name', e.target.value)} error={error} />
           </div>
           <Input label="תפקיד" placeholder="מנהל עבודה, טכנאי..." value={form.position} onChange={(e) => set('position', e.target.value)} />
-          <Select
-            label="סוג עובד"
-            options={ROLE_OPTIONS}
-            value={form.role}
-            onChange={(e) => set('role', e.target.value)}
-          />
+          <Select label="סוג עובד" options={ROLE_OPTIONS} value={form.role} onChange={(e) => set('role', e.target.value)} />
           <Input label="טלפון" placeholder="050-0000000" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
           <Input label="אימייל" type="email" placeholder="email@example.com" value={form.email} onChange={(e) => set('email', e.target.value)} />
           <Input label="תאריך תחילת עבודה" type="date" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
-          <Select
-            label="סטטוס"
-            options={[{ value: 'ACTIVE', label: 'פעיל' }, { value: 'INACTIVE', label: 'לא פעיל' }]}
-            value={form.status}
-            onChange={(e) => set('status', e.target.value)}
-          />
+          <Select label="סטטוס" options={[{ value: 'ACTIVE', label: 'פעיל' }, { value: 'INACTIVE', label: 'לא פעיל' }]} value={form.status} onChange={(e) => set('status', e.target.value)} />
         </div>
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 pb-2 border-b border-gray-700">תנאי שכר</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">תנאי שכר</h3>
         <div className="grid grid-cols-2 gap-3">
           <Select label="סוג שכר" options={WAGE_TYPE_OPTIONS} value={form.wageType} onChange={(e) => set('wageType', e.target.value)} />
           <Input label={`שכר (${wageLabel})`} type="number" placeholder="5000" value={form.wageAmount} onChange={(e) => set('wageAmount', e.target.value)} />
@@ -396,13 +386,13 @@ function EmployeeForm({
       </section>
 
       <section>
-        <label className="text-sm text-gray-300 font-medium block mb-1">הערות</label>
+        <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">הערות</label>
         <textarea
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
           rows={3}
           placeholder="הערות על העובד..."
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </section>
 

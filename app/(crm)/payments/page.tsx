@@ -96,7 +96,7 @@ export default function PaymentsPage() {
             onClick={() => exportCSV(payments)}
             disabled={payments.length === 0}
             title="ייצוא CSV"
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Download size={16} />
           </button>
@@ -107,22 +107,22 @@ export default function PaymentsPage() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <Card>
           <p className="text-xs text-gray-500 mb-1">סה&quot;כ תשלומים</p>
-          <p className="text-xl font-bold text-green-400">{formatCurrency(total)}</p>
-          <p className="text-xs text-gray-600 mt-0.5">{payments.length} עסקאות</p>
+          <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(total)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{payments.length} עסקאות</p>
         </Card>
         <Card>
           <div className="flex items-center gap-1.5 mb-1">
             <Calendar size={11} className="text-gray-500" />
             <p className="text-xs text-gray-500">החודש</p>
           </div>
-          <p className="text-xl font-bold text-blue-400">{formatCurrency(thisMonth)}</p>
+          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(thisMonth)}</p>
         </Card>
         <Card>
           <div className="flex items-center gap-1.5 mb-1">
             <TrendingUp size={11} className="text-gray-500" />
             <p className="text-xs text-gray-500">ממוצע לעסקה</p>
           </div>
-          <p className="text-xl font-bold text-white">
+          <p className="text-xl font-bold text-gray-900 dark:text-white">
             {payments.length > 0 ? formatCurrency(total / payments.length) : '—'}
           </p>
         </Card>
@@ -131,21 +131,21 @@ export default function PaymentsPage() {
       {/* Filters */}
       <div className="flex items-center gap-3 mb-5 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-400 whitespace-nowrap">מתאריך</label>
+          <label className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">מתאריך</label>
           <input
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-400 whitespace-nowrap">עד תאריך</label>
+          <label className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">עד תאריך</label>
           <input
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         {methods.length > 0 && (
@@ -163,14 +163,14 @@ export default function PaymentsPage() {
         {(fromDate || toDate || methodFilter) && (
           <button
             onClick={() => { setFromDate(''); setToDate(''); setMethodFilter('') }}
-            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             נקה סינון
           </button>
         )}
         <button
           onClick={fetchPayments}
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
         </button>
@@ -187,10 +187,10 @@ export default function PaymentsPage() {
           description="תשלומים נרשמים מתוך עמוד הפרויקט"
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-700">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-800/60 border-b border-gray-700 text-gray-400 text-xs">
+              <tr className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs">
                 <th className="px-4 py-3 font-semibold text-right">תאריך</th>
                 <th className="px-4 py-3 font-semibold text-right">לקוח</th>
                 <th className="px-4 py-3 font-semibold text-right">פרויקט</th>
@@ -200,37 +200,37 @@ export default function PaymentsPage() {
                 <th className="px-4 py-3 font-semibold text-right">הערות</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {payments.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-800/30 transition-colors">
-                  <td className="px-4 py-3 text-gray-300">{formatDate(p.date)}</td>
+                <tr key={p.id} className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatDate(p.date)}</td>
                   <td className="px-4 py-3">
                     {p.project?.client ? (
-                      <Link href={`/clients/${p.project.client.id}`} className="text-blue-400 hover:text-blue-300 transition-colors">
+                      <Link href={`/clients/${p.project.client.id}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
                         {p.project.client.name}
                       </Link>
-                    ) : <span className="text-gray-600">—</span>}
+                    ) : <span className="text-gray-400 dark:text-gray-600">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     {p.project ? (
-                      <Link href={`/projects/${p.project.id}`} className="text-gray-300 hover:text-white transition-colors">
+                      <Link href={`/projects/${p.project.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                         {p.project.name}
                       </Link>
-                    ) : <span className="text-gray-600">—</span>}
+                    ) : <span className="text-gray-400 dark:text-gray-600">—</span>}
                   </td>
-                  <td className="px-4 py-3 font-semibold text-green-300">{formatCurrency(p.amount)}</td>
-                  <td className="px-4 py-3 text-gray-400">{p.method ? (METHOD_LABELS[p.method] ?? p.method) : '—'}</td>
-                  <td className="px-4 py-3 text-gray-400 font-mono text-xs">{p.reference || '—'}</td>
+                  <td className="px-4 py-3 font-semibold text-green-600 dark:text-green-400">{formatCurrency(p.amount)}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{p.method ? (METHOD_LABELS[p.method] ?? p.method) : '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">{p.reference || '—'}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs max-w-[160px] truncate">{p.notes || '—'}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-gray-800/40 border-t border-gray-700">
-                <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-gray-400">
+              <tr className="bg-gray-50 dark:bg-gray-800/40 border-t border-gray-200 dark:border-gray-700">
+                <td colSpan={3} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400">
                   סה&quot;כ {payments.length} תשלומים
                 </td>
-                <td className="px-4 py-3 font-bold text-green-300">{formatCurrency(total)}</td>
+                <td className="px-4 py-3 font-bold text-green-600 dark:text-green-400">{formatCurrency(total)}</td>
                 <td colSpan={3} />
               </tr>
             </tfoot>

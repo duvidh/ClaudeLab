@@ -93,26 +93,26 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed top-0 right-0 z-30 h-full w-60 bg-gray-950 border-l border-gray-800 flex flex-col transition-transform duration-200',
+          'fixed top-0 right-0 z-30 h-full w-60 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-200',
           'lg:translate-x-0 lg:static lg:z-auto',
           open ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
         )}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-5 border-b border-gray-800">
+        <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-600 flex items-center justify-center shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               {logo ? <img src={logo} alt="לוגו" className="w-full h-full object-contain" /> : <HardHat size={16} className="text-white" />}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-white leading-none truncate">{companyName}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-none truncate">{companyName}</p>
               <p className="text-xs text-gray-500 mt-0.5">קבלנות בניה</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden text-gray-400 hover:text-white p-1 rounded"
+            className="lg:hidden text-gray-400 hover:text-gray-700 dark:hover:text-white p-1 rounded"
           >
             <X size={18} />
           </button>
@@ -130,14 +130,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 text-sm transition-colors',
                   isActive
-                    ? 'bg-blue-600/20 text-blue-400 font-medium'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                    ? 'bg-blue-50 text-blue-600 font-medium dark:bg-blue-900/50 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
                 )}
               >
                 <Icon size={18} className="shrink-0" />
                 <span>{label}</span>
                 {isActive && (
-                  <span className="mr-auto w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="mr-auto w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                 )}
               </Link>
             )
@@ -145,8 +145,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-800">
-          <p className="text-xs text-gray-600 text-center">v1.0.0</p>
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-gray-400 dark:text-gray-600 text-center">v1.0.0</p>
         </div>
       </aside>
     </>

@@ -28,11 +28,11 @@ type SortDir = 'asc' | 'desc'
 
 function Th({ label, active, sortDir, onClick }: { label: string; active: boolean; sortDir: SortDir; onClick: () => void }) {
   return (
-    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors">
+    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right cursor-pointer hover:text-gray-900 dark:hover:text-white select-none transition-colors">
       <span className="inline-flex items-center gap-1">
         {label}
         {active
-          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-600 dark:text-blue-400" /> : <ChevronDown size={12} className="text-blue-600 dark:text-blue-400" />
           : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
       </span>
     </th>
@@ -125,9 +125,9 @@ export function ClientsTable({ clients: initialClients, onDelete }: ClientsTable
       renderRow={(client) => {
         const totalContracts = client.projects.reduce((s, p) => s + p.contractValue, 0)
         return (
-          <tr key={client.id} className="hover:bg-gray-800/40 transition-colors group">
+          <tr key={client.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors group">
             <td className="px-4 py-3">
-              <div className="font-medium text-white">{client.name}</div>
+              <div className="font-medium text-gray-900 dark:text-white">{client.name}</div>
               {client.company && (
                 <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
                   <Building2 size={11} />
@@ -137,7 +137,7 @@ export function ClientsTable({ clients: initialClients, onDelete }: ClientsTable
               {client.email && (
                 <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
                   <Mail size={11} />
-                  <a href={`mailto:${client.email}`} className="hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>
+                  <a href={`mailto:${client.email}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={(e) => e.stopPropagation()}>
                     {client.email}
                   </a>
                 </div>
@@ -145,29 +145,29 @@ export function ClientsTable({ clients: initialClients, onDelete }: ClientsTable
             </td>
             <td className="px-4 py-3">
               {client.city && (
-                <div className="flex items-center gap-1 text-gray-300">
-                  <MapPin size={13} className="text-gray-500" />
+                <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                  <MapPin size={13} className="text-gray-400 dark:text-gray-500" />
                   {client.city}
                 </div>
               )}
             </td>
-            <td className="px-4 py-3 text-gray-400">{client.idNumber || '—'}</td>
-            <td className="px-4 py-3 text-gray-300 text-xs">
+            <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{client.idNumber || '—'}</td>
+            <td className="px-4 py-3 text-gray-700 dark:text-gray-300 text-xs">
               {client.category === 'BUSINESS' ? 'עסקי' : 'פרטי'}
             </td>
             <td className="px-4 py-3">
-              <div className="flex items-center gap-1 text-gray-300">
-                <FolderKanban size={13} className="text-gray-500" />
+              <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                <FolderKanban size={13} className="text-gray-400 dark:text-gray-500" />
                 {client._count.projects}
                 {client._count.quotes > 0 && (
-                  <span className="flex items-center gap-0.5 text-gray-500 mr-2">
+                  <span className="flex items-center gap-0.5 text-gray-400 dark:text-gray-500 mr-2">
                     <FileText size={11} />
                     {client._count.quotes}
                   </span>
                 )}
               </div>
             </td>
-            <td className="px-4 py-3 font-medium text-gray-200">
+            <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">
               {totalContracts > 0 ? formatCurrency(totalContracts) : '—'}
             </td>
             <td className="px-4 py-3">
@@ -177,17 +177,19 @@ export function ClientsTable({ clients: initialClients, onDelete }: ClientsTable
                   className="cursor-pointer hover:opacity-80 transition-opacity"
                 >
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                    client.status === 'ACTIVE' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-400'
+                    client.status === 'ACTIVE'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-400'
                   }`}>
                     {client.status === 'ACTIVE' ? 'פעיל' : 'לא פעיל'}
                   </span>
                 </button>
                 {openStatusId === client.id && (
-                  <div className="absolute top-full mt-1 right-0 z-50 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
+                  <div className="absolute top-full mt-1 right-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
                     {CLIENT_STATUS_OPTIONS.map((opt) => (
                       <button key={opt.value} onClick={() => handleStatusChange(client.id, opt.value)}
-                        className={`w-full text-right px-3 py-1.5 text-sm transition-colors hover:bg-gray-700 ${
-                          client.status === opt.value ? 'text-white font-medium' : 'text-gray-400'
+                        className={`w-full text-right px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                          client.status === opt.value ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-500 dark:text-gray-400'
                         }`}>
                         {opt.label}
                       </button>
@@ -196,13 +198,13 @@ export function ClientsTable({ clients: initialClients, onDelete }: ClientsTable
                 )}
               </div>
             </td>
-            <td className="px-4 py-3 text-gray-400 text-xs">{formatDate(client.joinDate)}</td>
+            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{formatDate(client.joinDate)}</td>
             <td className="px-4 py-3">
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setConfirmId(client.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
+                <button onClick={() => setConfirmId(client.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
                   <Trash2 size={14} />
                 </button>
-                <Link href={`/clients/${client.id}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
+                <Link href={`/clients/${client.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">
                   פרטים
                   <ChevronLeft size={13} />
                 </Link>

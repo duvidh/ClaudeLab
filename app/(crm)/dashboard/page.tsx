@@ -96,16 +96,16 @@ const PROJECT_STATUS_LABEL: Record<string, string> = {
   CANCELLED: 'בוטל',
 }
 const PROJECT_STATUS_COLOR: Record<string, string> = {
-  PLANNING: 'text-blue-400',
-  ACTIVE: 'text-green-400',
-  PAUSED: 'text-yellow-400',
-  COMPLETED: 'text-gray-400',
+  PLANNING: 'text-blue-500 dark:text-blue-400',
+  ACTIVE: 'text-green-600 dark:text-green-400',
+  PAUSED: 'text-yellow-600 dark:text-yellow-400',
+  COMPLETED: 'text-gray-500 dark:text-gray-400',
 }
 
 const PRIORITY_COLOR: Record<string, string> = {
-  HIGH: 'text-red-400',
-  MEDIUM: 'text-yellow-400',
-  LOW: 'text-gray-400',
+  HIGH: 'text-red-500 dark:text-red-400',
+  MEDIUM: 'text-yellow-600 dark:text-yellow-400',
+  LOW: 'text-gray-500 dark:text-gray-400',
 }
 
 const ACTIVITY_ACTION_LABEL: Record<string, string> = {
@@ -118,12 +118,12 @@ const ACTIVITY_ACTION_LABEL: Record<string, string> = {
 }
 
 const ACTIVITY_ACTION_COLOR: Record<string, string> = {
-  NOTE: 'bg-blue-500/20 text-blue-300',
-  CALL: 'bg-green-500/20 text-green-300',
-  STATUS_CHANGE: 'bg-purple-500/20 text-purple-300',
-  TASK_CREATED: 'bg-yellow-500/20 text-yellow-300',
-  SYSTEM: 'bg-gray-500/20 text-gray-400',
-  OTHER: 'bg-gray-500/20 text-gray-400',
+  NOTE: 'bg-blue-500/20 text-blue-600 dark:text-blue-300',
+  CALL: 'bg-green-500/20 text-green-600 dark:text-green-300',
+  STATUS_CHANGE: 'bg-purple-500/20 text-purple-600 dark:text-purple-300',
+  TASK_CREATED: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-300',
+  SYSTEM: 'bg-gray-500/20 text-gray-500 dark:text-gray-400',
+  OTHER: 'bg-gray-500/20 text-gray-500 dark:text-gray-400',
 }
 
 function ActivityActionIcon({ action }: { action: string }) {
@@ -157,11 +157,11 @@ function KPICard({
 }) {
   return (
     <Link href={href}>
-      <Card className="hover:border-gray-600 transition-colors cursor-pointer">
+      <Card className="hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">{label}</p>
-            <p className="text-2xl font-bold text-white">{value}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
             {sub && (
               <p className={`text-xs mt-1 ${subColor ?? 'text-gray-500'}`}>{sub}</p>
             )}
@@ -177,7 +177,7 @@ function KPICard({
 
 function RecentActivityFeed({ entries }: { entries: ActivityEntry[] }) {
   if (entries.length === 0) {
-    return <p className="text-center text-gray-600 text-sm py-6">אין פעילות אחרונה</p>
+    return <p className="text-center text-gray-500 dark:text-gray-600 text-sm py-6">אין פעילות אחרונה</p>
   }
 
   return (
@@ -197,16 +197,16 @@ function RecentActivityFeed({ entries }: { entries: ActivityEntry[] }) {
               <ActivityActionIcon action={entry.action} />
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-white truncate">{entry.description}</p>
+              <p className="text-sm text-gray-900 dark:text-white truncate">{entry.description}</p>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {entry.employee && (
                   <span className="text-xs text-gray-500">{entry.employee.name}</span>
                 )}
                 {entry.employee && entityName && (
-                  <span className="text-gray-700 text-xs">·</span>
+                  <span className="text-gray-400 dark:text-gray-700 text-xs">·</span>
                 )}
                 {entityName && entityHref ? (
-                  <Link href={entityHref} className="text-xs text-blue-400 hover:text-blue-300 truncate">
+                  <Link href={entityHref} className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 truncate">
                     {entityName}
                   </Link>
                 ) : entityName ? (
@@ -218,7 +218,7 @@ function RecentActivityFeed({ entries }: { entries: ActivityEntry[] }) {
               <span className={`text-[10px] px-1.5 py-0.5 rounded ${colorCls}`}>
                 {ACTIVITY_ACTION_LABEL[entry.action] ?? entry.action}
               </span>
-              <p className="text-[10px] text-gray-600 mt-0.5 text-left">{timeAgo(entry.createdAt)}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-0.5 text-left">{timeAgo(entry.createdAt)}</p>
             </div>
           </div>
         )
@@ -269,7 +269,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-white">שלום{companyName ? `, ${companyName}` : ''} 👋</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">שלום{companyName ? `, ${companyName}` : ''} 👋</h1>
         <p className="text-sm text-gray-500 mt-0.5">
           {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
           label="משימות פתוחות"
           value={data.tasks.pending}
           sub={data.tasks.overdue > 0 ? `${data.tasks.overdue} באיחור` : 'ללא איחורים'}
-          subColor={data.tasks.overdue > 0 ? 'text-red-400' : 'text-green-400'}
+          subColor={data.tasks.overdue > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}
           href="/tasks"
           color="bg-yellow-600"
         />
@@ -323,13 +323,13 @@ export default function DashboardPage() {
       {/* Financial summary row */}
       {finData && (
         <Link href="/finance">
-          <Card className="hover:border-gray-600 transition-colors cursor-pointer">
+          <Card className="hover:border-gray-300 dark:hover:border-gray-600 transition-colors cursor-pointer">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <DollarSign size={14} className="text-green-400" />
-                <span className="text-xs font-semibold text-gray-400">סיכום פיננסי</span>
+                <DollarSign size={14} className="text-green-500 dark:text-green-400" />
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">סיכום פיננסי</span>
               </div>
-              <span className="text-xs text-blue-400 flex items-center gap-0.5">
+              <span className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-0.5">
                 לדוח מלא <ArrowLeft size={11} />
               </span>
             </div>
@@ -337,19 +337,19 @@ export default function DashboardPage() {
 >
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ חוזים</p>
-                <p className="text-base font-bold text-white">{formatCurrency(finData.totalContracts)}</p>
+                <p className="text-base font-bold text-gray-900 dark:text-white">{formatCurrency(finData.totalContracts)}</p>
               </div>
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">סה&quot;כ גבייה</p>
-                <p className="text-base font-bold text-green-400">{formatCurrency(finData.totalRevenue)}</p>
+                <p className="text-base font-bold text-green-600 dark:text-green-400">{formatCurrency(finData.totalRevenue)}</p>
               </div>
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">יתרה לגבייה</p>
-                <p className="text-base font-bold text-yellow-400">{formatCurrency(finData.outstanding)}</p>
+                <p className="text-base font-bold text-yellow-600 dark:text-yellow-400">{formatCurrency(finData.outstanding)}</p>
               </div>
               <div>
                 <p className="text-[11px] text-gray-500 mb-0.5">אחוז גבייה</p>
-                <p className="text-base font-bold text-blue-400">
+                <p className="text-base font-bold text-blue-600 dark:text-blue-400">
                   {finData.totalContracts > 0
                     ? `${Math.round((finData.totalRevenue / finData.totalContracts) * 100)}%`
                     : '—'}
@@ -363,7 +363,7 @@ export default function DashboardPage() {
       {/* Revenue chart */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white">הכנסות — 6 חודשים אחרונים</h2>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">הכנסות — 6 חודשים אחרונים</h2>
           <span className="text-xs text-gray-500">כולל מע&quot;מ</span>
         </div>
         <ResponsiveContainer width="100%" height={140}>
@@ -374,7 +374,7 @@ export default function DashboardPage() {
               contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
               labelStyle={{ color: '#d1d5db' }}
               formatter={(v: unknown) => [formatCurrency(Number(v)), 'הכנסות']}
-              cursor={{ fill: 'rgba(255,255,255,0.06)' }}
+              cursor={{ fill: 'rgba(0,0,0,0.04)' }}
             />
             <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
               {data.revenue.monthly.map((entry, i) => (
@@ -393,8 +393,8 @@ export default function DashboardPage() {
         {/* Lead pipeline */}
         <Card className="col-span-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">משפך לידים</h2>
-            <Link href="/leads" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">משפך לידים</h2>
+            <Link href="/leads" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
               כל הלידים <ArrowLeft size={11} />
             </Link>
           </div>
@@ -405,10 +405,10 @@ export default function DashboardPage() {
               return (
                 <div key={status}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-gray-400">{LEAD_STATUS_LABELS[status as keyof typeof LEAD_STATUS_LABELS] ?? status}</span>
-                    <span className="text-xs font-semibold text-white">{count}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{LEAD_STATUS_LABELS[status as keyof typeof LEAD_STATUS_LABELS] ?? status}</span>
+                    <span className="text-xs font-semibold text-gray-900 dark:text-white">{count}</span>
                   </div>
-                  <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${PIPELINE_COLORS[status] ?? 'bg-gray-500'}`}
                       style={{ width: `${pct}%` }}
@@ -423,22 +423,22 @@ export default function DashboardPage() {
         {/* Active projects */}
         <Card className="col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">פרויקטים פעילים</h2>
-            <Link href="/projects" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">פרויקטים פעילים</h2>
+            <Link href="/projects" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
               כל הפרויקטים <ArrowLeft size={11} />
             </Link>
           </div>
           {data.projects.recent.length === 0 ? (
-            <p className="text-center text-gray-600 text-sm py-6">אין פרויקטים פעילים</p>
+            <p className="text-center text-gray-500 dark:text-gray-600 text-sm py-6">אין פרויקטים פעילים</p>
           ) : (
             <div className="space-y-3">
               {data.projects.recent.map((p) => (
                 <Link key={p.id} href={`/projects/${p.id}`} className="block">
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800/50 transition-colors -mx-2">
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors -mx-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-white truncate">{p.name}</p>
-                        <span className={`text-xs ${PROJECT_STATUS_COLOR[p.status] ?? 'text-gray-400'}`}>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.name}</p>
+                        <span className={`text-xs ${PROJECT_STATUS_COLOR[p.status] ?? 'text-gray-500 dark:text-gray-400'}`}>
                           {PROJECT_STATUS_LABEL[p.status] ?? p.status}
                         </span>
                       </div>
@@ -449,7 +449,7 @@ export default function DashboardPage() {
                         <span>התקדמות</span>
                         <span>{p.progressPercent}%</span>
                       </div>
-                      <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full"
                           style={{ width: `${p.progressPercent}%` }}
@@ -469,28 +469,28 @@ export default function DashboardPage() {
         {/* Upcoming tasks */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">משימות קרובות</h2>
-            <Link href="/tasks" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">משימות קרובות</h2>
+            <Link href="/tasks" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
               כל המשימות <ArrowLeft size={11} />
             </Link>
           </div>
           {data.tasks.upcoming.length === 0 ? (
-            <p className="text-center text-gray-600 text-sm py-6">אין משימות קרובות ב-7 ימים</p>
+            <p className="text-center text-gray-500 dark:text-gray-600 text-sm py-6">אין משימות קרובות ב-7 ימים</p>
           ) : (
             <div className="space-y-2">
               {data.tasks.upcoming.map((t) => {
                 const isOverdue = new Date(t.dueDate) < new Date()
                 return (
                   <div key={t.id} className="flex items-center gap-2.5 py-1.5">
-                    <Clock size={14} className={isOverdue ? 'text-red-400' : 'text-gray-500'} />
+                    <Clock size={14} className={isOverdue ? 'text-red-500 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{t.title}</p>
+                      <p className="text-sm text-gray-900 dark:text-white truncate">{t.title}</p>
                       <p className="text-xs text-gray-500">
                         {t.client?.name ?? t.project?.name ?? ''}
                       </p>
                     </div>
                     <div className="text-left shrink-0">
-                      <p className={`text-xs font-medium ${isOverdue ? 'text-red-400' : 'text-gray-400'}`}>
+                      <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                         {formatDate(t.dueDate)}
                       </p>
                       <p className={`text-[10px] text-left ${PRIORITY_COLOR[t.priority] ?? 'text-gray-500'}`}>
@@ -507,28 +507,28 @@ export default function DashboardPage() {
         {/* Recent leads */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">לידים אחרונים</h2>
-            <Link href="/leads" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-0.5">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">לידים אחרונים</h2>
+            <Link href="/leads" className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-0.5">
               כל הלידים <ArrowLeft size={11} />
             </Link>
           </div>
           {data.recentLeads.length === 0 ? (
-            <p className="text-center text-gray-600 text-sm py-6">אין לידים</p>
+            <p className="text-center text-gray-500 dark:text-gray-600 text-sm py-6">אין לידים</p>
           ) : (
             <div className="space-y-2">
               {data.recentLeads.map((lead) => (
                 <Link key={lead.id} href={`/leads/${lead.id}`} className="block">
-                  <div className="flex items-center gap-2.5 py-1.5 hover:bg-gray-800/30 rounded-lg -mx-1 px-1 transition-colors">
+                  <div className="flex items-center gap-2.5 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/30 rounded-lg -mx-1 px-1 transition-colors">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
                       {lead.fullName.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{lead.fullName}</p>
+                      <p className="text-sm text-gray-900 dark:text-white truncate">{lead.fullName}</p>
                       <p className="text-xs text-gray-500">{lead.primaryPhone}{lead.city ? ` · ${lead.city}` : ''}</p>
                     </div>
                     <div className="shrink-0 text-left">
                       <StatusBadge type="lead" value={lead.status} />
-                      <p className="text-[10px] text-gray-600 mt-0.5 text-left">{timeAgo(lead.createdAt)}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-600 mt-0.5 text-left">{timeAgo(lead.createdAt)}</p>
                     </div>
                   </div>
                 </Link>
@@ -542,8 +542,8 @@ export default function DashboardPage() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Activity size={14} className="text-purple-400" />
-            <h2 className="text-sm font-semibold text-white">פעילות אחרונה</h2>
+            <Activity size={14} className="text-purple-500 dark:text-purple-400" />
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">פעילות אחרונה</h2>
           </div>
         </div>
         <RecentActivityFeed entries={data.recentActivity ?? []} />
@@ -554,14 +554,14 @@ export default function DashboardPage() {
         <Link href="/tasks?status=PENDING">
           <Card className="border-red-500/30 bg-red-500/5 hover:border-red-500/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-3">
-              <AlertTriangle size={18} className="text-red-400 shrink-0" />
+              <AlertTriangle size={18} className="text-red-500 dark:text-red-400 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-red-300">
+                <p className="text-sm font-semibold text-red-600 dark:text-red-300">
                   {data.tasks.overdue} משימה{data.tasks.overdue !== 1 ? 'ות' : ''} באיחור
                 </p>
-                <p className="text-xs text-red-400/70">לחץ לצפייה במשימות הבוערות</p>
+                <p className="text-xs text-red-500/70 dark:text-red-400/70">לחץ לצפייה במשימות הבוערות</p>
               </div>
-              <ArrowLeft size={16} className="text-red-400 mr-auto" />
+              <ArrowLeft size={16} className="text-red-500 dark:text-red-400 mr-auto" />
             </div>
           </Card>
         </Link>

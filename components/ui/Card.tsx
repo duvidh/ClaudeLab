@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('bg-gray-800 border border-gray-700 rounded-xl p-5', className)}
+      className={cn('bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5', className)}
       {...props}
     >
       {children}
@@ -22,7 +22,7 @@ export function CardHeader({ className, children, ...props }: HTMLAttributes<HTM
 
 export function CardTitle({ className, children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn('text-base font-semibold text-white', className)} {...props}>
+    <h3 className={cn('text-base font-semibold text-gray-900 dark:text-white', className)} {...props}>
       {children}
     </h3>
   )

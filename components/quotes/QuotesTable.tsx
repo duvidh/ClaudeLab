@@ -43,11 +43,11 @@ type SortDir = 'asc' | 'desc'
 
 function Th({ label, active, sortDir, onClick }: { label: string; active: boolean; sortDir: SortDir; onClick: () => void }) {
   return (
-    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-400 text-right cursor-pointer hover:text-white select-none transition-colors">
+    <th onClick={onClick} className="px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right cursor-pointer hover:text-gray-900 dark:hover:text-white select-none transition-colors">
       <span className="inline-flex items-center gap-1">
         {label}
         {active
-          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-400" /> : <ChevronDown size={12} className="text-blue-400" />
+          ? sortDir === 'asc' ? <ChevronUp size={12} className="text-blue-600 dark:text-blue-400" /> : <ChevronDown size={12} className="text-blue-600 dark:text-blue-400" />
           : <ChevronDown size={12} className="opacity-0 group-hover:opacity-40" />}
       </span>
     </th>
@@ -121,8 +121,8 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
         renderRow={(quote) => {
           const expStatus = getExpirationStatus(quote)
           return (
-            <tr key={quote.id} className="hover:bg-gray-800/40 group transition-colors">
-              <td className="px-4 py-3 font-medium text-blue-400">
+            <tr key={quote.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors">
+              <td className="px-4 py-3 font-medium text-blue-600 dark:text-blue-400">
                 <Link href={`/quotes/${quote.id}`} className="hover:underline flex items-center gap-1">
                   <FileText size={13} />
                   {quote.quoteNumber}
@@ -130,50 +130,50 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
               </td>
               <td className="px-4 py-3">
                 {quote.client ? (
-                  <Link href={`/clients/${quote.client.id}`} className="text-gray-300 hover:text-white">
+                  <Link href={`/clients/${quote.client.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {quote.client.name}
                   </Link>
                 ) : quote.lead ? (
-                  <Link href={`/leads/${quote.lead.id}`} className="text-gray-300 hover:text-white">
+                  <Link href={`/leads/${quote.lead.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
                     {quote.lead.fullName}
                   </Link>
                 ) : (
-                  <span className="text-gray-500">—</span>
+                  <span className="text-gray-400 dark:text-gray-500">—</span>
                 )}
               </td>
-              <td className="px-4 py-3 text-gray-400">{quote.project?.name || '—'}</td>
-              <td className="px-4 py-3 text-gray-400">{formatDate(quote.date)}</td>
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote.project?.name || '—'}</td>
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(quote.date)}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1.5">
                   {expStatus && (
                     <span title={expStatus === 'expired' ? 'פג תוקף' : 'פג תוקף בקרוב'}>
                       <AlertCircle
                         size={13}
-                        className={expStatus === 'expired' ? 'text-red-400 shrink-0' : 'text-amber-400 shrink-0'}
+                        className={expStatus === 'expired' ? 'text-red-500 dark:text-red-400 shrink-0' : 'text-amber-500 dark:text-amber-400 shrink-0'}
                       />
                     </span>
                   )}
                   <span className={
-                    expStatus === 'expired' ? 'text-red-400' :
-                    expStatus === 'expiring-soon' ? 'text-amber-400' :
-                    'text-gray-400'
+                    expStatus === 'expired' ? 'text-red-500 dark:text-red-400' :
+                    expStatus === 'expiring-soon' ? 'text-amber-500 dark:text-amber-400' :
+                    'text-gray-500 dark:text-gray-400'
                   }>
                     {quote.validUntil ? formatDate(quote.validUntil) : '—'}
                   </span>
                 </div>
               </td>
-              <td className="px-4 py-3 text-gray-400">{quote._count.items}</td>
-              <td className="px-4 py-3 font-medium text-gray-200">
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote._count.items}</td>
+              <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">
                 {quote.items.length > 0 ? formatCurrency(calcTotal(quote.items, quote.discount)) : '—'}
               </td>
               <td className="px-4 py-3"><StatusBadge type="quote" value={quote.status} /></td>
               <td className="px-4 py-3 text-gray-500">v{quote.version}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors" title="מחק">
+                  <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
                     <Trash2 size={14} />
                   </button>
-                  <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
+                  <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">
                     פתח
                     <ChevronLeft size={13} />
                   </Link>

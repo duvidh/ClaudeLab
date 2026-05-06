@@ -122,7 +122,7 @@ export function FloatingActionButton() {
         <button
           onClick={() => setOpen((v) => !v)}
           className={`w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all text-white ${
-            open ? 'bg-gray-700 rotate-45' : 'bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500'
+            open ? 'bg-gray-300 dark:bg-gray-700 rotate-45 text-gray-800 dark:text-white' : 'bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500'
           }`}
           title="פעולות מהירות"
         >
@@ -176,12 +176,12 @@ export function FloatingActionButton() {
           />
           <Input label="תאריך ושעה *" name="date" type="datetime-local" required defaultValue={new Date().toISOString().slice(0, 16)} />
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">נושא / סיכום</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">נושא / סיכום</label>
             <textarea
               name="summary"
               rows={2}
               placeholder="נושא הפגישה..."
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <div className="flex gap-2 pt-1">

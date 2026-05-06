@@ -1,6 +1,7 @@
 'use client'
 
 import { Bell, Menu, Search, CheckCheck, Info, AlertTriangle, CheckCircle, XCircle, Users, UserCheck, FolderKanban, LogOut } from 'lucide-react'
+import { ThemeToggle } from '@/components/header'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
@@ -90,21 +91,21 @@ function GlobalSearch() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setGlobalSearchOpen(true)}
-        className="w-full bg-gray-800 border border-gray-700 rounded-lg py-2 pr-9 pl-3 text-sm text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+        className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pr-9 pl-3 text-sm text-gray-900 dark:text-gray-200 placeholder:text-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
       />
       {globalSearchOpen && results.length > 0 && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
           {results.map((r) => {
             const Icon = RESULT_ICON[r.type] ?? Users
             return (
               <button
                 key={r.id}
                 onClick={() => handleSelect(r.href)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-700 transition-colors text-right"
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-right"
               >
                 <Icon size={15} className="text-gray-400 shrink-0" />
                 <div className="flex-1 min-w-0 text-right">
-                  <p className="text-sm text-white truncate">{r.label}</p>
+                  <p className="text-sm text-gray-900 dark:text-white truncate">{r.label}</p>
                   <p className="text-xs text-gray-500 truncate">{r.sub}</p>
                 </div>
                 <span className="text-xs text-gray-600 shrink-0">{RESULT_LABEL[r.type]}</span>
@@ -114,7 +115,7 @@ function GlobalSearch() {
         </div>
       )}
       {globalSearchOpen && query.length >= 2 && results.length === 0 && !loading && (
-        <div className="absolute top-full mt-1.5 left-0 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 px-4 py-3">
+        <div className="absolute top-full mt-1.5 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 px-4 py-3">
           <p className="text-sm text-gray-500 text-center">לא נמצאו תוצאות עבור &quot;{query}&quot;</p>
         </div>
       )}
@@ -200,10 +201,10 @@ export function Header({ onMenuOpen }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-gray-900/80 backdrop-blur border-b border-gray-800">
+    <header className="sticky top-0 z-10 flex items-center gap-3 px-4 py-3 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
       <button
         onClick={onMenuOpen}
-        className="lg:hidden text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800"
+        className="lg:hidden text-gray-400 hover:text-gray-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         <Menu size={20} />
       </button>
@@ -211,10 +212,11 @@ export function Header({ onMenuOpen }: HeaderProps) {
       <GlobalSearch />
 
       <div className="mr-auto flex items-center gap-2">
+        <ThemeToggle />
         <div className="relative" ref={ref}>
           <button
             onClick={openPanel}
-            className={`relative p-2 hover:bg-gray-800 rounded-lg transition-colors ${open ? 'text-white bg-gray-800' : 'text-gray-400 hover:text-white'}`}
+            className={`relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${open ? 'text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800' : 'text-gray-400 hover:text-gray-700 dark:hover:text-white'}`}
           >
             <Bell size={18} />
             {unreadCount > 0 && (
@@ -225,9 +227,9 @@ export function Header({ onMenuOpen }: HeaderProps) {
           </button>
 
           {open && (
-            <div className="absolute left-0 top-full mt-2 w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                <span className="font-semibold text-white text-sm">התראות</span>
+            <div className="absolute left-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">התראות</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
@@ -256,13 +258,13 @@ export function Header({ onMenuOpen }: HeaderProps) {
                       <div
                         key={n.id}
                         onClick={() => !n.isRead && markRead(n.id)}
-                        className={`flex items-start gap-3 px-4 py-3 border-b border-gray-700/50 transition-colors ${
-                          n.isRead ? 'opacity-50' : 'cursor-pointer hover:bg-gray-700/40'
+                        className={`flex items-start gap-3 px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50 transition-colors ${
+                          n.isRead ? 'opacity-50' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40'
                         }`}
                       >
                         <Icon size={15} className={`shrink-0 mt-0.5 ${color}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white leading-snug">{n.message}</p>
+                          <p className="text-xs text-gray-900 dark:text-white leading-snug">{n.message}</p>
                           <p className="text-[11px] text-gray-500 mt-0.5">{formatRelative(n.createdAt)}</p>
                         </div>
                         {!n.isRead && (
@@ -281,12 +283,12 @@ export function Header({ onMenuOpen }: HeaderProps) {
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white cursor-pointer">
             מ
           </div>
-          <div className="absolute end-0 top-10 w-36 bg-gray-800 border border-gray-700 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
+          <div className="absolute end-0 top-10 w-36 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
             <button
               onClick={() => {
                 void signOut({ callbackUrl: '/login' })
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <LogOut size={13} />
               התנתק

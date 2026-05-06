@@ -32,13 +32,13 @@ export function DataTable<T>({
   headerCellClassName,
   bodyClassName,
 }: DataTableProps<T>) {
-  const defaultHeaderCellClassName = 'px-4 py-3 font-semibold text-gray-400 text-right'
+  const defaultHeaderCellClassName = 'px-4 py-3 font-semibold text-gray-700 dark:text-gray-300 text-right'
 
   return (
-    <div className={cn('overflow-x-auto rounded-xl border border-gray-700', wrapperClassName)}>
+    <div className={cn('overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700', wrapperClassName)}>
       <table className={cn('w-full text-sm', tableClassName)}>
         <thead>
-          <tr className={cn('bg-gray-800/60 border-b border-gray-700 group', headerRowClassName)}>
+          <tr className={cn('bg-gray-100 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700 group', headerRowClassName)}>
             {headers.map((header, index) => {
               if (typeof header === 'string' || typeof header === 'number') {
                 return (
@@ -56,11 +56,11 @@ export function DataTable<T>({
             })}
           </tr>
         </thead>
-        <tbody className={cn('divide-y divide-gray-800', bodyClassName)}>
+        <tbody className={cn('divide-y divide-gray-100 dark:divide-gray-700', bodyClassName)}>
           {data.length > 0 && data.map(renderRow)}
           {data.length === 0 && emptyStateProps && (
             <tr className={emptyStateProps.rowClassName}>
-              <td colSpan={headers.length} className={cn('px-4 py-8 text-center text-gray-400', emptyStateProps.cellClassName)}>
+              <td colSpan={headers.length} className={cn('px-4 py-8 text-center text-gray-500 dark:text-gray-400', emptyStateProps.cellClassName)}>
                 {emptyStateProps.content}
               </td>
             </tr>
