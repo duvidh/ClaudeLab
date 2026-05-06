@@ -23,6 +23,10 @@ import { ProjectSettingsPanel } from '@/components/projects/ProjectSettingsPanel
 import { RiskRegister } from '@/components/projects/RiskRegister'
 import { ChangeRequests } from '@/components/projects/ChangeRequests'
 import { QualityChecks } from '@/components/projects/QualityChecks'
+import { WBSManager } from '@/components/projects/WBSManager'
+import { BOMManager } from '@/components/projects/BOMManager'
+import { ContractsList } from '@/components/projects/ContractsList'
+import { SupplierScorecard } from '@/components/projects/SupplierScorecard'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Project, Client, Milestone, Quote, Payment, Task, ProjectFile } from '@/types'
@@ -48,6 +52,8 @@ type PMSettings = {
   enableRisks: boolean
   enableChangeRequests: boolean
   enableQC: boolean
+  enableWBS: boolean
+  enableProcurement: boolean
 }
 
 const PRIORITY_OPTIONS = [
@@ -69,6 +75,8 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
     enableRisks: false,
     enableChangeRequests: false,
     enableQC: false,
+    enableWBS: false,
+    enableProcurement: false,
   })
   const [activeTab, setActiveTab] = useState(() => {
     try { return localStorage.getItem(`tab-project-${initialProject.id}`) ?? 'overview' } catch { return 'overview' }
@@ -104,6 +112,8 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
     ...(pmSettings.enableRisks ? [{ id: 'risks', label: 'סיכונים' }] : []),
     ...(pmSettings.enableChangeRequests ? [{ id: 'change-requests', label: 'בקשות שינוי' }] : []),
     ...(pmSettings.enableQC ? [{ id: 'quality-checks', label: 'בקרת איכות' }] : []),
+    ...(pmSettings.enableWBS ? [{ id: 'wbs', label: 'תכולת עבודה' }] : []),
+    ...(pmSettings.enableProcurement ? [{ id: 'procurement', label: 'רכש וספקים' }] : []),
     { id: 'documents', label: 'מסמכים' },
     { id: 'settings', label: 'הגדרות' },
   ]
@@ -384,6 +394,22 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* WBS & BOM */}
+      {activeTab === 'wbs' && (
+        <div className="space-y-6">
+          <WBSManager projectId={project.id} />
+          <BOMManager projectId={project.id} />
+        </div>
+      )}
+
+      {/* Procurement */}
+      {activeTab === 'procurement' && (
+        <div className="space-y-6">
+          <ContractsList projectId={project.id} />
+          <SupplierScorecard projectId={project.id} />
         </div>
       )}
 

@@ -195,6 +195,8 @@ model ProjectSettings {
   enableRisks          Boolean @default(false)
   enableChangeRequests Boolean @default(false)
   enableMilestones     Boolean @default(true)
+  enableWBS            Boolean @default(false)
+  enableProcurement    Boolean @default(false)
 }
 
 // ProjectMember — maps an Employee to a Project with a PM role

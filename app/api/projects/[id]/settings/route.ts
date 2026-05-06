@@ -16,6 +16,8 @@ export async function GET(
         enableRisks: false,
         enableChangeRequests: false,
         enableMilestones: true,
+        enableWBS: false,
+        enableProcurement: false,
       },
     })
     return NextResponse.json({ data: settings })
@@ -31,12 +33,14 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await req.json()
-    const { enableQC, enableRisks, enableChangeRequests, enableMilestones } = body
+    const { enableQC, enableRisks, enableChangeRequests, enableMilestones, enableWBS, enableProcurement } = body
     const data: Record<string, boolean> = {}
     if (enableQC !== undefined) data.enableQC = enableQC
     if (enableRisks !== undefined) data.enableRisks = enableRisks
     if (enableChangeRequests !== undefined) data.enableChangeRequests = enableChangeRequests
     if (enableMilestones !== undefined) data.enableMilestones = enableMilestones
+    if (enableWBS !== undefined) data.enableWBS = enableWBS
+    if (enableProcurement !== undefined) data.enableProcurement = enableProcurement
 
     const settings = await prisma.projectSettings.upsert({
       where: { projectId: id },
@@ -47,6 +51,8 @@ export async function PATCH(
         enableRisks: enableRisks ?? false,
         enableChangeRequests: enableChangeRequests ?? false,
         enableMilestones: enableMilestones ?? true,
+        enableWBS: enableWBS ?? false,
+        enableProcurement: enableProcurement ?? false,
       },
     })
     return NextResponse.json({ data: settings })
