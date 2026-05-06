@@ -57,10 +57,10 @@ const HEBREW_MONTHS = [
 const HEBREW_DAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']
 
 const EVENT_STYLES = {
-  meeting: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-  task: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  'project-start': 'bg-green-500/20 text-green-300 border-green-500/30',
-  'project-end': 'bg-red-500/20 text-red-300 border-red-500/30',
+  meeting: 'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 border-blue-200 dark:border-blue-500/30',
+  task: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300 border-yellow-200 dark:border-yellow-500/30',
+  'project-start': 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300 border-green-200 dark:border-green-500/30',
+  'project-end': 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300 border-red-200 dark:border-red-500/30',
 }
 
 const EVENT_ICONS = {
@@ -232,12 +232,12 @@ export default function CalendarPage() {
       <div className="flex gap-5">
         <div className="flex-1 min-w-0">
           <Card className="overflow-hidden p-0">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-              <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-colors">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 <ChevronRight size={18} />
               </button>
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-white text-lg">
+                <span className="font-semibold text-gray-900 dark:text-white text-lg">
                   {HEBREW_MONTHS[month - 1]} {year}
                 </span>
                 <button
@@ -247,12 +247,12 @@ export default function CalendarPage() {
                   היום
                 </button>
               </div>
-              <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-colors">
+              <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 <ChevronLeft size={18} />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 border-b border-gray-700">
+            <div className="grid grid-cols-7 border-b border-gray-200 dark:border-gray-700">
               {HEBREW_DAYS.map((d) => (
                 <div key={d} className="py-2 text-center text-xs font-semibold text-gray-500">
                   {d}
@@ -277,14 +277,14 @@ export default function CalendarPage() {
                     <div
                       key={i}
                       onClick={() => isValid && setSelectedDay(day === selectedDay ? null : day)}
-                      className={`min-h-[90px] border-b border-r border-gray-800 p-1.5 transition-colors ${
-                        isValid ? 'cursor-pointer hover:bg-gray-800/40' : 'opacity-30'
-                      } ${isSelected ? 'bg-blue-500/10 ring-1 ring-inset ring-blue-500/40' : ''}`}
+                      className={`min-h-[90px] border-b border-r border-gray-100 dark:border-gray-800 p-1.5 transition-colors ${
+                        isValid ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/40' : 'opacity-30'
+                      } ${isSelected ? 'bg-blue-50 dark:bg-blue-500/10 ring-1 ring-inset ring-blue-500/40' : ''}`}
                     >
                       {isValid && (
                         <>
                           <div className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold mb-1 ${
-                            isTodayCell ? 'bg-blue-500 text-white' : 'text-gray-400'
+                            isTodayCell ? 'bg-blue-500 text-white' : 'text-gray-700 dark:text-gray-400'
                           }`}>
                             {day}
                           </div>
@@ -326,7 +326,7 @@ export default function CalendarPage() {
           <Card>
             <div className="flex items-center gap-2 mb-3">
               <Calendar size={16} className="text-blue-400" />
-              <span className="font-semibold text-white text-sm">
+              <span className="font-semibold text-gray-900 dark:text-white text-sm">
                 {selectedDay
                   ? `${selectedDay} ${HEBREW_MONTHS[month - 1]}`
                   : 'בחר יום לפרטים'}
@@ -337,13 +337,13 @@ export default function CalendarPage() {
               <div className="flex gap-1.5 mb-4">
                 <button
                   onClick={() => openCreate('meeting')}
-                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-200 dark:border-blue-500/30 rounded-lg text-blue-600 dark:text-blue-300 transition-colors"
                 >
                   <Plus size={11} /> פגישה
                 </button>
                 <button
                   onClick={() => openCreate('task')}
-                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-yellow-300 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 bg-yellow-50 dark:bg-yellow-500/10 hover:bg-yellow-100 dark:hover:bg-yellow-500/20 border border-yellow-200 dark:border-yellow-500/30 rounded-lg text-yellow-600 dark:text-yellow-300 transition-colors"
                 >
                   <Plus size={11} /> משימה
                 </button>
@@ -386,19 +386,19 @@ export default function CalendarPage() {
           </Card>
 
           <Card className="mt-4">
-            <p className="text-xs font-semibold text-gray-400 mb-3">סיכום חודש</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-3">סיכום חודש</p>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-1.5"><Users size={13} />פגישות</span>
-                <span className="font-semibold text-blue-300">{data.meetings.length}</span>
+                <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5"><Users size={13} />פגישות</span>
+                <span className="font-semibold text-blue-600 dark:text-blue-300">{data.meetings.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-1.5"><CheckSquare size={13} />משימות פתוחות</span>
-                <span className="font-semibold text-yellow-300">{data.tasks.length}</span>
+                <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5"><CheckSquare size={13} />משימות פתוחות</span>
+                <span className="font-semibold text-yellow-600 dark:text-yellow-300">{data.tasks.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-1.5"><FolderOpen size={13} />פרויקטים</span>
-                <span className="font-semibold text-green-300">{data.projects.length}</span>
+                <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1.5"><FolderOpen size={13} />פרויקטים</span>
+                <span className="font-semibold text-green-600 dark:text-green-300">{data.projects.length}</span>
               </div>
             </div>
           </Card>
@@ -425,13 +425,13 @@ export default function CalendarPage() {
                 onChange={(e) => setMeetingType(e.target.value)}
               />
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">סיכום / נושא</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">סיכום / נושא</label>
                 <textarea
                   value={meetingSummary}
                   onChange={(e) => setMeetingSummary(e.target.value)}
                   rows={2}
                   placeholder="נושא הפגישה..."
-                  className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </>

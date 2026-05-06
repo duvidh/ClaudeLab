@@ -34,10 +34,10 @@ function EditableList({
 
   return (
     <div>
-      <p className="text-sm font-semibold text-gray-300 mb-2">{title}</p>
+      <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">{title}</p>
       <div className="space-y-1.5 mb-2">
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 text-sm text-white">
+          <div key={idx} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white">
             <span>{item}</span>
             <button onClick={() => remove(idx)} className="text-gray-500 hover:text-red-400 transition-colors">
               <X size={14} />
@@ -152,9 +152,9 @@ function CompanyTab() {
   return (
     <div className="space-y-4 max-w-lg">
       <Card>
-        <p className="text-sm font-semibold text-gray-300 mb-4">לוגו החברה</p>
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">לוגו החברה</p>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-700 flex items-center justify-center shrink-0">
+          <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             {logo ? <img src={logo} alt="לוגו" className="w-full h-full object-contain" /> : <HardHat size={24} className="text-blue-400" />}
           </div>
@@ -175,7 +175,7 @@ function CompanyTab() {
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-gray-300 mb-4">פרטי החברה</p>
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">פרטי החברה</p>
         <div className="space-y-3">
           <Input label="שם החברה" value={form.name} onChange={(e) => set('name', e.target.value)} />
           <Input label='ח.פ / ע.מ' value={form.taxId} onChange={(e) => set('taxId', e.target.value)} />
@@ -189,7 +189,7 @@ function CompanyTab() {
       </Card>
 
       <Card>
-        <p className="text-sm font-semibold text-gray-300 mb-4">הגדרות חשבונאות</p>
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">הגדרות חשבונאות</p>
         <div className="max-w-xs">
           <Input
             label="אחוז מע״מ (%)"
@@ -315,14 +315,14 @@ function SystemDataTab() {
   }, [])
 
   const rows: { label: string; key: keyof SystemStats; color: string }[] = [
-    { label: 'לידים', key: 'leads', color: 'text-blue-400' },
-    { label: 'לקוחות', key: 'clients', color: 'text-teal-400' },
-    { label: 'פרויקטים', key: 'projects', color: 'text-purple-400' },
-    { label: 'הצעות מחיר', key: 'quotes', color: 'text-yellow-400' },
-    { label: 'משימות', key: 'tasks', color: 'text-orange-400' },
-    { label: 'פריטי קטלוג', key: 'catalogItems', color: 'text-green-400' },
-    { label: 'תשלומים', key: 'payments', color: 'text-pink-400' },
-    { label: 'התראות', key: 'notifications', color: 'text-gray-400' },
+    { label: 'לידים', key: 'leads', color: 'text-blue-600 dark:text-blue-400' },
+    { label: 'לקוחות', key: 'clients', color: 'text-teal-600 dark:text-teal-400' },
+    { label: 'פרויקטים', key: 'projects', color: 'text-purple-600 dark:text-purple-400' },
+    { label: 'הצעות מחיר', key: 'quotes', color: 'text-yellow-600 dark:text-yellow-400' },
+    { label: 'משימות', key: 'tasks', color: 'text-orange-600 dark:text-orange-400' },
+    { label: 'פריטי קטלוג', key: 'catalogItems', color: 'text-green-600 dark:text-green-400' },
+    { label: 'תשלומים', key: 'payments', color: 'text-pink-600 dark:text-pink-400' },
+    { label: 'התראות', key: 'notifications', color: 'text-gray-500 dark:text-gray-400' },
   ]
 
   return (
@@ -333,7 +333,7 @@ function SystemDataTab() {
             <Database size={18} className="text-blue-400" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">נתוני מערכת</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">נתוני מערכת</p>
             <p className="text-xs text-gray-500">סיכום כמות הרשומות בכל מודול</p>
           </div>
         </div>
@@ -344,8 +344,8 @@ function SystemDataTab() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {rows.map(({ label, key, color }) => (
-              <div key={key} className="bg-gray-800/60 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm text-gray-400">{label}</span>
+              <div key={key} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
                 <span className={`text-lg font-bold ${color}`}>{stats?.[key] ?? 0}</span>
               </div>
             ))}
@@ -407,9 +407,9 @@ function RecycleBinTab() {
     const sub = item.type === 'lead' ? item.primaryPhone : item.city
     const busy = actionId === item.id
     return (
-      <div className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2.5">
+      <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2.5">
         <div>
-          <p className="text-sm text-white">{label}</p>
+          <p className="text-sm text-gray-900 dark:text-white">{label}</p>
           <p className="text-xs text-gray-500">
             {item.type === 'lead' ? 'ליד' : 'לקוח'}{sub ? ` · ${sub}` : ''} · נמחק {new Date(item.deletedAt).toLocaleDateString('he-IL')}
           </p>
@@ -441,7 +441,7 @@ function RecycleBinTab() {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm font-semibold text-white">סל מחזור</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">סל מחזור</p>
             <p className="text-xs text-gray-500">לידים ולקוחות שנמחקו — ניתן לשחזר או למחוק לצמיתות</p>
           </div>
           <button onClick={load} className="text-xs text-blue-400 hover:text-blue-300">רענן</button>
@@ -481,7 +481,7 @@ export default function SettingsPage() {
     <div>
       <PageHeader title="הגדרות" subtitle="ניהול מידע, רשימות ואפשרויות מערכת" />
 
-      <div className="flex gap-1 mb-6 bg-gray-800/50 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-800/50 p-1 rounded-xl w-fit">
         {TABS.map((t) => {
           const Icon = t.icon
           return (
@@ -490,8 +490,8 @@ export default function SettingsPage() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 tab === t.id
-                  ? 'bg-gray-700 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Icon size={15} />
