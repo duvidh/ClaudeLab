@@ -166,26 +166,157 @@ model Project {
   contractValue   Float     @default(0)
   notes           String?
 
-  milestones Milestone[]
-  quotes     Quote[]
-  payments   Payment[]
-  tasks      Task[]
-  files      ProjectFile[]
+  milestones     Milestone[]
+  quotes         Quote[]
+  payments       Payment[]
+  tasks          Task[]
+  files          ProjectFile[]
+  settings       ProjectSettings?
+  members        ProjectMember[]
+  qualityChecks  QualityCheck[]
+  ncrs           NCR[]
+  risks          Risk[]
+  changeRequests ChangeRequest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+// ProjectSettings — modular feature flags toggled per project
+// role values: OWNER_REP | PROJECT_MANAGER | CONTRACTOR | INSPECTOR
+model ProjectSettings {
+  id                   String  @id @default(cuid())
+  projectId            String  @unique
+  project              Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  enableQC             Boolean @default(false)
+  enableRisks          Boolean @default(false)
+  enableChangeRequests Boolean @default(false)
+  enableMilestones     Boolean @default(true)
+}
+
+// ProjectMember — maps an Employee to a Project with a PM role
+// role: OWNER_REP | PROJECT_MANAGER | CONTRACTOR | INSPECTOR
+model ProjectMember {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  // role: OWNER_REP | PROJECT_MANAGER | CONTRACTOR | INSPECTOR
+  role       String
+  createdAt  DateTime @default(now())
+
+  @@unique([projectId, employeeId])
+}
+
 model Milestone {
+  id                   String    @id @default(cuid())
+  projectId            String
+  project              Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name                 String
+  description          String?
+  plannedDate          DateTime?
+  actualDate           DateTime?
+  // status: PENDING | IN_PROGRESS | DONE
+  status               String    @default("PENDING")
+  order                Int       @default(0)
+  requiredApprovalById String?
+  requiredApprovalBy   Employee? @relation("MilestoneApprover", fields: [requiredApprovalById], references: [id])
+}
+
+// ─── Quality Control ──────────────────────────────────────────────────────────
+
+// QualityCheck — a QC/QA inspection checklist attached to a project
+// checklistItems: JSON array of { item: string; passed: boolean | null }
+// status: PENDING | IN_PROGRESS | PASSED | FAILED
+model QualityCheck {
+  id             String    @id @default(cuid())
+  projectId      String
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  checklistItems String    @default("[]")
+  // status: PENDING | IN_PROGRESS | PASSED | FAILED
+  status         String    @default("PENDING")
+  inspectorId    String?
+  inspector      Employee? @relation("QCInspector", fields: [inspectorId], references: [id])
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  ncrs NCR[]
+}
+
+// NCR — Non-Conformance Report raised during a quality check
+// severity: LOW | MEDIUM | HIGH | CRITICAL
+// status: OPEN | IN_PROGRESS | RESOLVED | CLOSED
+model NCR {
+  id             String        @id @default(cuid())
+  projectId      String
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  qualityCheckId String?
+  qualityCheck   QualityCheck? @relation(fields: [qualityCheckId], references: [id])
+  title          String
+  description    String?
+  // severity: LOW | MEDIUM | HIGH | CRITICAL
+  severity       String        @default("MEDIUM")
+  // status: OPEN | IN_PROGRESS | RESOLVED | CLOSED
+  status         String        @default("OPEN")
+  reportedById   String?
+  reportedBy     Employee?     @relation("NCRReportedBy", fields: [reportedById], references: [id])
+  resolvedById   String?
+  resolvedBy     Employee?     @relation("NCRResolvedBy", fields: [resolvedById], references: [id])
+  resolvedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+// ─── Risk Management ──────────────────────────────────────────────────────────
+
+// Risk — entry in the project risk register
+// probability: LOW | MEDIUM | HIGH
+// impact: LOW | MEDIUM | HIGH | CRITICAL
+// status: IDENTIFIED | MONITORING | MITIGATED | CLOSED
+model Risk {
   id          String    @id @default(cuid())
   projectId   String
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  name        String
-  plannedDate DateTime?
-  actualDate  DateTime?
-  // status: PENDING | IN_PROGRESS | DONE
-  status      String    @default("PENDING")
-  order       Int       @default(0)
+  title       String
+  description String?
+  // probability: LOW | MEDIUM | HIGH
+  probability String    @default("MEDIUM")
+  // impact: LOW | MEDIUM | HIGH | CRITICAL
+  impact      String    @default("MEDIUM")
+  mitigation  String?
+  // status: IDENTIFIED | MONITORING | MITIGATED | CLOSED
+  status      String    @default("IDENTIFIED")
+  ownerId     String?
+  owner       Employee? @relation("RiskOwner", fields: [ownerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Change Management ────────────────────────────────────────────────────────
+
+// ChangeRequest — formal request to change scope, cost, or schedule
+// status: PENDING | APPROVED | REJECTED
+// timeImpact: number of calendar days added/removed
+model ChangeRequest {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  costImpact    Float     @default(0)
+  timeImpact    Int       @default(0)
+  // status: PENDING | APPROVED | REJECTED
+  status        String    @default("PENDING")
+  requestedById String?
+  requestedBy   Employee? @relation("CRRequestedBy", fields: [requestedById], references: [id])
+  approvedById  String?
+  approvedBy    Employee? @relation("CRApprovedBy", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model ProjectFile {
@@ -296,27 +427,27 @@ model Invoice {
 // ─── Tasks ───────────────────────────────────────────────────────────────────
 
 model Task {
-  id          String     @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   assignedTo  String?
   employeeId  String?
-  employee    Employee?  @relation(fields: [employeeId], references: [id])
+  employee    Employee? @relation(fields: [employeeId], references: [id])
   dueDate     DateTime?
   // status: PENDING | IN_PROGRESS | DONE
-  status      String     @default("PENDING")
+  status      String    @default("PENDING")
   // priority: LOW | MEDIUM | HIGH
-  priority    String     @default("MEDIUM")
+  priority    String    @default("MEDIUM")
   // taskType: TASK | CALL | MEETING | EMAIL | FOLLOWUP | ADMINISTRATIVE | OTHER
-  taskType    String     @default("TASK")
+  taskType    String    @default("TASK")
   leadId      String?
-  lead        Lead?      @relation(fields: [leadId], references: [id])
+  lead        Lead?     @relation(fields: [leadId], references: [id])
   clientId    String?
-  client      Client?    @relation(fields: [clientId], references: [id])
+  client      Client?   @relation(fields: [clientId], references: [id])
   projectId   String?
-  project     Project?   @relation(fields: [projectId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  project     Project?  @relation(fields: [projectId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 // ─── Employees ───────────────────────────────────────────────────────────────
@@ -341,9 +472,17 @@ model Employee {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  assignedLeads Lead[]
-  tasks         Task[]
-  activityLogs  ActivityLog[]
+  assignedLeads          Lead[]
+  tasks                  Task[]
+  activityLogs           ActivityLog[]
+  projectMembers         ProjectMember[]
+  milestoneApprovals     Milestone[]     @relation("MilestoneApprover")
+  qualityChecksInspected QualityCheck[]  @relation("QCInspector")
+  ncrReported            NCR[]           @relation("NCRReportedBy")
+  ncrResolved            NCR[]           @relation("NCRResolvedBy")
+  risksOwned             Risk[]          @relation("RiskOwner")
+  changeRequestsCreated  ChangeRequest[] @relation("CRRequestedBy")
+  changeRequestsApproved ChangeRequest[] @relation("CRApprovedBy")
 }
 
 // ─── Suppliers ───────────────────────────────────────────────────────────────
