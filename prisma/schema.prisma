@@ -177,6 +177,9 @@ model Project {
   ncrs           NCR[]
   risks          Risk[]
   changeRequests ChangeRequest[]
+  workPackages   WorkPackage[]
+  bomItems       BOMItem[]
+  contracts      Contract[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -192,6 +195,8 @@ model ProjectSettings {
   enableRisks          Boolean @default(false)
   enableChangeRequests Boolean @default(false)
   enableMilestones     Boolean @default(true)
+  enableWBS            Boolean @default(false)
+  enableProcurement    Boolean @default(false)
 }
 
 // ProjectMember — maps an Employee to a Project with a PM role
@@ -276,6 +281,7 @@ model NCR {
 // probability: LOW | MEDIUM | HIGH
 // impact: LOW | MEDIUM | HIGH | CRITICAL
 // status: IDENTIFIED | MONITORING | MITIGATED | CLOSED
+// category: TECHNICAL | FINANCIAL | PROCUREMENT | OPERATIONAL
 model Risk {
   id          String    @id @default(cuid())
   projectId   String
@@ -289,6 +295,8 @@ model Risk {
   mitigation  String?
   // status: IDENTIFIED | MONITORING | MITIGATED | CLOSED
   status      String    @default("IDENTIFIED")
+  // category: TECHNICAL | FINANCIAL | PROCUREMENT | OPERATIONAL
+  category    String?
   ownerId     String?
   owner       Employee? @relation("RiskOwner", fields: [ownerId], references: [id])
   createdAt   DateTime  @default(now())
@@ -483,22 +491,35 @@ model Employee {
   risksOwned             Risk[]          @relation("RiskOwner")
   changeRequestsCreated  ChangeRequest[] @relation("CRRequestedBy")
   changeRequestsApproved ChangeRequest[] @relation("CRApprovedBy")
+  workPackages           WorkPackage[]
 }
 
 // ─── Suppliers ───────────────────────────────────────────────────────────────
 
+// Supplier — vendor / subcontractor scoreboard
+// All score fields are 0–100 scale (nullable = not yet rated)
 model Supplier {
-  id          String   @id @default(cuid())
-  name        String
-  contactName String?
-  phone       String?
-  email       String?
-  address     String?
-  category    String?
-  notes       String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String  @id @default(cuid())
+  name           String
+  contactName    String?
+  phone          String?
+  email          String?
+  address        String?
+  category       String?
+  notes          String?
+  isActive       Boolean @default(true)
+  // Evaluation scores (0–100)
+  qualityScore   Float?
+  deliveryScore  Float?
+  financialScore Float?
+  technicalScore Float?
+  overallScore   Float?
+
+  bomItems  BOMItem[]
+  contracts Contract[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ─── Activity Log ────────────────────────────────────────────────────────────
@@ -526,6 +547,76 @@ model Notification {
   isRead        Boolean  @default(false)
   relatedEntity String?
   createdAt     DateTime @default(now())
+}
+
+// ─── Procurement & Supply Chain ───────────────────────────────────────────────
+
+// WorkPackage — WBS node attached to a project
+// status: PLANNED | IN_PROGRESS | COMPLETED | ON_HOLD | CANCELLED
+model WorkPackage {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float     @default(0)
+  // status: PLANNED | IN_PROGRESS | COMPLETED | ON_HOLD | CANCELLED
+  status      String    @default("PLANNED")
+  assigneeId  String?
+  assignee    Employee? @relation(fields: [assigneeId], references: [id])
+
+  bomItems BOMItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// BOMItem — Bill of Materials line attached to a project (and optionally a work package)
+// status: REQUIRED | ORDERED | DELIVERED | INSTALLED | CANCELLED
+model BOMItem {
+  id            String       @id @default(cuid())
+  projectId     String
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workPackageId String?
+  workPackage   WorkPackage? @relation(fields: [workPackageId], references: [id])
+  partNumber    String?
+  description   String
+  quantity      Float        @default(1)
+  unit          String?
+  unitPrice     Float?
+  // status: REQUIRED | ORDERED | DELIVERED | INSTALLED | CANCELLED
+  status        String       @default("REQUIRED")
+  supplierId    String?
+  supplier      Supplier?    @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Contract — procurement agreement with a supplier / subcontractor
+// contractType: FIXED_PRICE | TURN_KEY | COST_PLUS | TIME_AND_MATERIAL | BOQ
+// status: DRAFT | ACTIVE | COMPLETED | TERMINATED | EXPIRED
+model Contract {
+  id           String    @id @default(cuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  supplierId   String?
+  supplier     Supplier? @relation(fields: [supplierId], references: [id])
+  title        String
+  // contractType: FIXED_PRICE | TURN_KEY | COST_PLUS | TIME_AND_MATERIAL | BOQ
+  contractType String    @default("FIXED_PRICE")
+  totalValue   Float     @default(0)
+  // status: DRAFT | ACTIVE | COMPLETED | TERMINATED | EXPIRED
+  status       String    @default("DRAFT")
+  signedDate   DateTime?
+  startDate    DateTime?
+  endDate      DateTime?
+  notes        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ─── App settings (key-value, value is JSON string) ─────────────────────────

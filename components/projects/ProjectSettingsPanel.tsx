@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Shield, AlertTriangle, GitPullRequest, Milestone } from 'lucide-react'
+import { Settings, Shield, AlertTriangle, GitPullRequest, Milestone, Layers, ShoppingCart } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 
 type ProjectSettings = {
@@ -9,6 +9,8 @@ type ProjectSettings = {
   enableQC: boolean
   enableRisks: boolean
   enableChangeRequests: boolean
+  enableWBS: boolean
+  enableProcurement: boolean
 }
 
 interface ProjectSettingsPanelProps {
@@ -48,6 +50,22 @@ const MODULES = [
     desc: 'רשימות ביקורת, בדיקות ממ"ת (NCR)',
     color: 'text-green-500',
     bg: 'bg-green-500/10',
+  },
+  {
+    key: 'enableWBS' as keyof ProjectSettings,
+    icon: Layers,
+    title: 'תכולת עבודה (WBS)',
+    desc: 'פירוק עבודה לחבילות + רשימת חומרים (BOM)',
+    color: 'text-cyan-500',
+    bg: 'bg-cyan-500/10',
+  },
+  {
+    key: 'enableProcurement' as keyof ProjectSettings,
+    icon: ShoppingCart,
+    title: 'רכש וספקים',
+    desc: 'ניהול חוזים, ספקים ודירוגם',
+    color: 'text-orange-500',
+    bg: 'bg-orange-500/10',
   },
 ]
 
