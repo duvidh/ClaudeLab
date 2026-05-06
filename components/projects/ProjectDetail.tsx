@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -19,6 +19,10 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
 import { MilestoneTimeline } from '@/components/projects/MilestoneTimeline'
 import { ProjectForm } from '@/components/projects/ProjectForm'
+import { ProjectSettingsPanel } from '@/components/projects/ProjectSettingsPanel'
+import { RiskRegister } from '@/components/projects/RiskRegister'
+import { ChangeRequests } from '@/components/projects/ChangeRequests'
+import { QualityChecks } from '@/components/projects/QualityChecks'
 import { formatDate, formatCurrency } from '@/lib/utils'
 import { useSettingsLists } from '@/lib/useSettingsLists'
 import type { Project, Client, Milestone, Quote, Payment, Task, ProjectFile } from '@/types'
@@ -32,13 +36,19 @@ type ProjectWithRelations = Project & {
   files: ProjectFile[]
 }
 
-const TABS = [
+const BASE_TABS = [
   { id: 'overview', label: 'סקירה' },
-  { id: 'milestones', label: 'אבני דרך' },
   { id: 'financials', label: 'כספים' },
   { id: 'tasks', label: 'משימות' },
   { id: 'documents', label: 'מסמכים' },
 ]
+
+type PMSettings = {
+  enableMilestones: boolean
+  enableRisks: boolean
+  enableChangeRequests: boolean
+  enableQC: boolean
+}
 
 const PRIORITY_OPTIONS = [
   { value: 'HIGH', label: 'גבוהה' },
@@ -54,9 +64,22 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
   const lists = useSettingsLists()
   const [project, setProject] = useState(initialProject)
   const [files, setFiles] = useState<ProjectFile[]>(initialProject.files)
+  const [pmSettings, setPmSettings] = useState<PMSettings>({
+    enableMilestones: true,
+    enableRisks: false,
+    enableChangeRequests: false,
+    enableQC: false,
+  })
   const [activeTab, setActiveTab] = useState(() => {
     try { return localStorage.getItem(`tab-project-${initialProject.id}`) ?? 'overview' } catch { return 'overview' }
   })
+
+  useEffect(() => {
+    fetch(`/api/projects/${initialProject.id}/settings`)
+      .then((r) => r.json())
+      .then((j) => { if (j.data) setPmSettings(j.data) })
+      .catch(() => {})
+  }, [initialProject.id])
 
   function handleTabChange(tab: string) {
     setActiveTab(tab)
@@ -73,7 +96,19 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
   const router = useRouter()
 
-  const tabsWithCounts = TABS.map((t) => ({
+  const dynamicTabs = [
+    { id: 'overview', label: 'סקירה' },
+    ...(pmSettings.enableMilestones ? [{ id: 'milestones', label: 'אבני דרך' }] : []),
+    { id: 'financials', label: 'כספים' },
+    { id: 'tasks', label: 'משימות' },
+    ...(pmSettings.enableRisks ? [{ id: 'risks', label: 'סיכונים' }] : []),
+    ...(pmSettings.enableChangeRequests ? [{ id: 'change-requests', label: 'בקשות שינוי' }] : []),
+    ...(pmSettings.enableQC ? [{ id: 'quality-checks', label: 'בקרת איכות' }] : []),
+    { id: 'documents', label: 'מסמכים' },
+    { id: 'settings', label: 'הגדרות' },
+  ]
+
+  const tabsWithCounts = dynamicTabs.map((t) => ({
     ...t,
     count:
       t.id === 'milestones' ? project.milestones.length
@@ -355,6 +390,29 @@ export function ProjectDetail({ project: initialProject }: ProjectDetailProps) {
       {/* Documents */}
       {activeTab === 'documents' && (
         <ProjectFilesTab projectId={project.id} files={files} onFilesChange={setFiles} />
+      )}
+
+      {/* Risks */}
+      {activeTab === 'risks' && (
+        <RiskRegister projectId={project.id} />
+      )}
+
+      {/* Change Requests */}
+      {activeTab === 'change-requests' && (
+        <ChangeRequests projectId={project.id} />
+      )}
+
+      {/* Quality Checks */}
+      {activeTab === 'quality-checks' && (
+        <QualityChecks projectId={project.id} />
+      )}
+
+      {/* Project Settings */}
+      {activeTab === 'settings' && (
+        <ProjectSettingsPanel
+          projectId={project.id}
+          onSettingsChange={(s) => setPmSettings(s)}
+        />
       )}
 
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="עריכת פרויקט" size="lg">

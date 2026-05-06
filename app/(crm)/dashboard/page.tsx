@@ -10,6 +10,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActions'
 import { formatCurrency, formatDate, timeAgo } from '@/lib/utils'
 import { LEAD_STATUS_LABELS } from '@/types'
 import { CRM_SETTING_KEYS } from '@/lib/crm-settings'
@@ -233,28 +234,29 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [companyName, setCompanyName] = useState('')
 
-  useEffect(() => {
-    Promise.all([
+  async function fetchData() {
+    const [dash, fin, settings] = await Promise.all([
       fetch('/api/dashboard').then((r) => r.json()),
       fetch('/api/finance').then((r) => r.json()).catch(() => null),
       fetch('/api/settings').then((r) => r.json()).catch(() => null),
-    ]).then(([dash, fin, settings]) => {
-      setData(dash.data)
-      if (fin?.data) {
-        setFinData({
-          totalRevenue: fin.data.totalRevenue,
-          totalContracts: fin.data.totalContracts,
-          outstanding: fin.data.outstanding,
-        })
-      }
-      const company = settings?.data?.[CRM_SETTING_KEYS.company]
-      if (company && typeof company === 'object' && company !== null && 'name' in company) {
-        const n = (company as { name?: unknown }).name
-        if (typeof n === 'string') setCompanyName(n)
-      }
-      setLoading(false)
-    })
-  }, [])
+    ])
+    setData(dash.data)
+    if (fin?.data) {
+      setFinData({
+        totalRevenue: fin.data.totalRevenue,
+        totalContracts: fin.data.totalContracts,
+        outstanding: fin.data.outstanding,
+      })
+    }
+    const company = settings?.data?.[CRM_SETTING_KEYS.company]
+    if (company && typeof company === 'object' && company !== null && 'name' in company) {
+      const n = (company as { name?: unknown }).name
+      if (typeof n === 'string') setCompanyName(n)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchData() }, [])
 
   if (loading || !data) {
     return (
@@ -268,11 +270,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">שלום{companyName ? `, ${companyName}` : ''} 👋</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">שלום{companyName ? `, ${companyName}` : ''} 👋</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+        <DashboardQuickActions onCreated={fetchData} />
       </div>
 
       {/* KPI row */}
@@ -366,26 +371,32 @@ export default function DashboardPage() {
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">הכנסות — 6 חודשים אחרונים</h2>
           <span className="text-xs text-gray-500">כולל מע&quot;מ</span>
         </div>
-        <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={data.revenue.monthly} barSize={28}>
-            <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis hide />
-            <Tooltip
-              contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
-              labelStyle={{ color: '#d1d5db' }}
-              formatter={(v: unknown) => [formatCurrency(Number(v)), 'הכנסות']}
-              cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-            />
-            <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-              {data.revenue.monthly.map((entry, i) => (
-                <Cell
-                  key={i}
-                  fill={i === data.revenue.monthly.length - 1 ? '#3b82f6' : '#4b5563'}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {data.revenue.monthly.every((m) => m.amount === 0) ? (
+          <div className="flex items-center justify-center h-[140px] text-sm text-gray-400 dark:text-gray-600">
+            אין נתוני תשלומים עדיין
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={data.revenue.monthly} barSize={28}>
+              <XAxis dataKey="month" tick={{ fill: '#6b7280', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{ background: '#1f2937', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: '#d1d5db' }}
+                formatter={(v: unknown) => [formatCurrency(Number(v)), 'הכנסות']}
+                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+              />
+              <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                {data.revenue.monthly.map((entry, i) => (
+                  <Cell
+                    key={i}
+                    fill={i === data.revenue.monthly.length - 1 ? '#3b82f6' : '#4b5563'}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </Card>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
