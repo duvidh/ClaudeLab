@@ -104,85 +104,151 @@ export function QuotesTable({ quotes, onDelete }: { quotes: QuoteWithRelations[]
 
   return (
     <>
-      <DataTable
-        headers={[
-          <Th key="quoteNumber" label="מספר הצעה" active={sortField === 'quoteNumber'} sortDir={sortDir} onClick={() => toggleSort('quoteNumber')} />,
-          <Th key="clientName" label="לקוח" active={sortField === 'clientName'} sortDir={sortDir} onClick={() => toggleSort('clientName')} />,
-          'פרויקט',
-          <Th key="date" label="תאריך" active={sortField === 'date'} sortDir={sortDir} onClick={() => toggleSort('date')} />,
-          <Th key="validUntil" label="תוקף" active={sortField === 'validUntil'} sortDir={sortDir} onClick={() => toggleSort('validUntil')} />,
-          'פריטים',
-          <Th key="total" label='סה"כ כולל מע"מ' active={sortField === 'total'} sortDir={sortDir} onClick={() => toggleSort('total')} />,
-          <Th key="status" label="סטטוס" active={sortField === 'status'} sortDir={sortDir} onClick={() => toggleSort('status')} />,
-          'גרסה',
-          <th key="actions" className="px-4 py-3" />,
-        ]}
-        data={sorted}
-        renderRow={(quote) => {
+      {/* Mobile: card list */}
+      <div className="md:hidden space-y-3">
+        {sorted.map((quote) => {
           const expStatus = getExpirationStatus(quote)
+          const total = quote.items.length > 0 ? calcTotal(quote.items, quote.discount) : null
+          const entity = quote.client ?? (quote.lead ? { id: quote.lead.id, name: quote.lead.fullName } : null)
+          const entityHref = quote.client ? `/clients/${quote.client.id}` : quote.lead ? `/leads/${quote.lead.id}` : null
           return (
-            <tr key={quote.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors">
-              <td className="px-4 py-3 font-medium text-blue-600 dark:text-blue-400">
-                <Link href={`/quotes/${quote.id}`} className="hover:underline flex items-center gap-1">
-                  <FileText size={13} />
+            <div key={quote.id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                  <FileText size={14} className="shrink-0" />
                   {quote.quoteNumber}
+                  <span className="text-gray-400 dark:text-gray-500 text-xs font-normal">v{quote.version}</span>
                 </Link>
-              </td>
-              <td className="px-4 py-3">
-                {quote.client ? (
-                  <Link href={`/clients/${quote.client.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                    {quote.client.name}
-                  </Link>
-                ) : quote.lead ? (
-                  <Link href={`/leads/${quote.lead.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-                    {quote.lead.fullName}
-                  </Link>
-                ) : (
-                  <span className="text-gray-400 dark:text-gray-500">—</span>
-                )}
-              </td>
-              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote.project?.name || '—'}</td>
-              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(quote.date)}</td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-1.5">
-                  {expStatus && (
-                    <span title={expStatus === 'expired' ? 'פג תוקף' : 'פג תוקף בקרוב'}>
-                      <AlertCircle
-                        size={13}
-                        className={expStatus === 'expired' ? 'text-red-500 dark:text-red-400 shrink-0' : 'text-amber-500 dark:text-amber-400 shrink-0'}
-                      />
-                    </span>
+                <StatusBadge type="quote" value={quote.status} />
+              </div>
+
+              {entity && entityHref && (
+                <Link href={entityHref} className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-1 block truncate">
+                  {entity.name}
+                </Link>
+              )}
+              {quote.project && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 truncate">{quote.project.name}</p>
+              )}
+
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="space-y-0.5">
+                  {total !== null && (
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{formatCurrency(total)}</p>
                   )}
-                  <span className={
-                    expStatus === 'expired' ? 'text-red-500 dark:text-red-400' :
-                    expStatus === 'expiring-soon' ? 'text-amber-500 dark:text-amber-400' :
-                    'text-gray-500 dark:text-gray-400'
-                  }>
-                    {quote.validUntil ? formatDate(quote.validUntil) : '—'}
-                  </span>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span>{formatDate(quote.date)}</span>
+                    {quote.validUntil && (
+                      <span className={`flex items-center gap-0.5 ${
+                        expStatus === 'expired' ? 'text-red-500 dark:text-red-400' :
+                        expStatus === 'expiring-soon' ? 'text-amber-500 dark:text-amber-400' : ''
+                      }`}>
+                        {expStatus && <AlertCircle size={11} className="shrink-0" />}
+                        תוקף: {formatDate(quote.validUntil)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </td>
-              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote._count.items}</td>
-              <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">
-                {quote.items.length > 0 ? formatCurrency(calcTotal(quote.items, quote.discount)) : '—'}
-              </td>
-              <td className="px-4 py-3"><StatusBadge type="quote" value={quote.status} /></td>
-              <td className="px-4 py-3 text-gray-500">v{quote.version}</td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
-                    <Trash2 size={14} />
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setConfirmId(quote.id)}
+                    className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  >
+                    <Trash2 size={16} />
                   </button>
-                  <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">
-                    פתח
-                    <ChevronLeft size={13} />
+                  <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                    פתח <ChevronLeft size={14} />
                   </Link>
                 </div>
-              </td>
-            </tr>
+              </div>
+            </div>
           )
-        }}
-      />
+        })}
+      </div>
+
+      {/* Desktop: standard table */}
+      <div className="hidden md:block">
+        <DataTable
+          headers={[
+            <Th key="quoteNumber" label="מספר הצעה" active={sortField === 'quoteNumber'} sortDir={sortDir} onClick={() => toggleSort('quoteNumber')} />,
+            <Th key="clientName" label="לקוח" active={sortField === 'clientName'} sortDir={sortDir} onClick={() => toggleSort('clientName')} />,
+            'פרויקט',
+            <Th key="date" label="תאריך" active={sortField === 'date'} sortDir={sortDir} onClick={() => toggleSort('date')} />,
+            <Th key="validUntil" label="תוקף" active={sortField === 'validUntil'} sortDir={sortDir} onClick={() => toggleSort('validUntil')} />,
+            'פריטים',
+            <Th key="total" label='סה"כ כולל מע"מ' active={sortField === 'total'} sortDir={sortDir} onClick={() => toggleSort('total')} />,
+            <Th key="status" label="סטטוס" active={sortField === 'status'} sortDir={sortDir} onClick={() => toggleSort('status')} />,
+            'גרסה',
+            <th key="actions" className="px-4 py-3" />,
+          ]}
+          data={sorted}
+          renderRow={(quote) => {
+            const expStatus = getExpirationStatus(quote)
+            return (
+              <tr key={quote.id} className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 group transition-colors">
+                <td className="px-4 py-3 font-medium text-blue-600 dark:text-blue-400">
+                  <Link href={`/quotes/${quote.id}`} className="hover:underline flex items-center gap-1">
+                    <FileText size={13} />
+                    {quote.quoteNumber}
+                  </Link>
+                </td>
+                <td className="px-4 py-3">
+                  {quote.client ? (
+                    <Link href={`/clients/${quote.client.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                      {quote.client.name}
+                    </Link>
+                  ) : quote.lead ? (
+                    <Link href={`/leads/${quote.lead.id}`} className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                      {quote.lead.fullName}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote.project?.name || '—'}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{formatDate(quote.date)}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    {expStatus && (
+                      <span title={expStatus === 'expired' ? 'פג תוקף' : 'פג תוקף בקרוב'}>
+                        <AlertCircle
+                          size={13}
+                          className={expStatus === 'expired' ? 'text-red-500 dark:text-red-400 shrink-0' : 'text-amber-500 dark:text-amber-400 shrink-0'}
+                        />
+                      </span>
+                    )}
+                    <span className={
+                      expStatus === 'expired' ? 'text-red-500 dark:text-red-400' :
+                      expStatus === 'expiring-soon' ? 'text-amber-500 dark:text-amber-400' :
+                      'text-gray-500 dark:text-gray-400'
+                    }>
+                      {quote.validUntil ? formatDate(quote.validUntil) : '—'}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{quote._count.items}</td>
+                <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">
+                  {quote.items.length > 0 ? formatCurrency(calcTotal(quote.items, quote.discount)) : '—'}
+                </td>
+                <td className="px-4 py-3"><StatusBadge type="quote" value={quote.status} /></td>
+                <td className="px-4 py-3 text-gray-500">v{quote.version}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => setConfirmId(quote.id)} className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors" title="מחק">
+                      <Trash2 size={14} />
+                    </button>
+                    <Link href={`/quotes/${quote.id}`} className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs">
+                      פתח
+                      <ChevronLeft size={13} />
+                    </Link>
+                  </div>
+                </td>
+              </tr>
+            )
+          }}
+        />
+      </div>
+
       <ConfirmModal open={!!confirmId} onClose={() => setConfirmId(null)} onConfirm={handleDelete}
         title="מחיקת הצעת מחיר" message={`האם למחוק את הצעת מחיר "${confirmQuote?.quoteNumber}"? פעולה זו אינה ניתנת לביטול.`}
         confirmLabel="מחק" loading={deleting} />

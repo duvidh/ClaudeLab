@@ -104,7 +104,7 @@ export default function PaymentsPage() {
       />
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card>
           <p className="text-xs text-gray-500 mb-1">סה&quot;כ תשלומים</p>
           <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(total)}</p>

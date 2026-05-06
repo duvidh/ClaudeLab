@@ -304,7 +304,7 @@ function KanbanView({
   onAddInColumn: (status: string) => void
 }) {
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {KANBAN_COLUMNS.map((col) => {
         const colTasks = tasks.filter((t) => t.status === col.status)
         return (

@@ -180,7 +180,7 @@ function CompanyTab() {
           <Input label="שם החברה" value={form.name} onChange={(e) => set('name', e.target.value)} />
           <Input label='ח.פ / ע.מ' value={form.taxId} onChange={(e) => set('taxId', e.target.value)} />
           <Input label="כתובת" value={form.address} onChange={(e) => set('address', e.target.value)} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label="טלפון" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
             <Input label="אימייל" value={form.email} onChange={(e) => set('email', e.target.value)} />
           </div>
@@ -342,7 +342,7 @@ function SystemDataTab() {
             <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {rows.map(({ label, key, color }) => (
               <div key={key} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg px-4 py-3 flex items-center justify-between">
                 <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>

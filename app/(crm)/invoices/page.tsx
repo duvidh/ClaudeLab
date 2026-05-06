@@ -142,7 +142,7 @@ export default function InvoicesPage() {
       />
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card>
           <p className="text-xs text-gray-500 mb-1">ממתינות לתשלום</p>
           <p className="text-xl font-bold text-yellow-400">{formatCurrency(totalUnpaid)}</p>
@@ -331,7 +331,7 @@ function InvoiceForm({
         onChange={(e) => set('amount', e.target.value)}
         required
       />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           label="תאריך חשבונית"
           type="date"

@@ -364,8 +364,8 @@ function EmployeeForm({
     <form onSubmit={handleSubmit} className="space-y-5">
       <section>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">פרטים אישיים</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
             <Input label="שם מלא *" placeholder="ישראל ישראלי" value={form.name} onChange={(e) => set('name', e.target.value)} error={error} />
           </div>
           <Input label="תפקיד" placeholder="מנהל עבודה, טכנאי..." value={form.position} onChange={(e) => set('position', e.target.value)} />
@@ -379,7 +379,7 @@ function EmployeeForm({
 
       <section>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">תנאי שכר</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Select label="סוג שכר" options={WAGE_TYPE_OPTIONS} value={form.wageType} onChange={(e) => set('wageType', e.target.value)} />
           <Input label={`שכר (${wageLabel})`} type="number" placeholder="5000" value={form.wageAmount} onChange={(e) => set('wageAmount', e.target.value)} />
         </div>
