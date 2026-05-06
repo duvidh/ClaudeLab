@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { updateProjectProgress } from '@/lib/project-progress'
 
 export async function GET(
   _req: NextRequest,
@@ -34,6 +35,7 @@ export async function PATCH(
     const data: Record<string, unknown> = { ...rest }
     if ('dueDate' in body) data.dueDate = dueDate ? new Date(dueDate) : null
     const task = await prisma.task.update({ where: { id }, data })
+    if (task.projectId) await updateProjectProgress(task.projectId)
     return NextResponse.json({ data: task })
   } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון המשימה' }, { status: 500 })
@@ -46,7 +48,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+    const task = await prisma.task.findUnique({ where: { id }, select: { projectId: true } })
     await prisma.task.delete({ where: { id } })
+    if (task?.projectId) await updateProjectProgress(task.projectId)
     return NextResponse.json({ data: { success: true } })
   } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת המשימה' }, { status: 500 })

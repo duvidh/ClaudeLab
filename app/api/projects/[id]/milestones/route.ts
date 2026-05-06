@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { notify } from '@/lib/notify'
+import { updateProjectProgress } from '@/lib/project-progress'
 
 export async function POST(
   req: NextRequest,
@@ -13,6 +14,7 @@ export async function POST(
     const milestone = await prisma.milestone.create({
       data: { ...body, projectId: id, order: count },
     })
+    await updateProjectProgress(id)
     return NextResponse.json({ data: milestone }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת אבן דרך' }, { status: 500 })
@@ -38,6 +40,7 @@ export async function PATCH(
         `project:${projectId}`
       )
     }
+    await updateProjectProgress(projectId)
     return NextResponse.json({ data: milestone })
   } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון אבן דרך' }, { status: 500 })
