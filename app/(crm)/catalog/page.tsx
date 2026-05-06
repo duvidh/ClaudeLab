@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Plus, RefreshCw, Package, Pencil, Check, X, Power, Download, Upload } from 'lucide-react'
+import { Plus, RefreshCw, Package, Pencil, Check, X, Power, Download, Upload, FileWarning } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
@@ -10,6 +10,12 @@ import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { formatCurrency } from '@/lib/utils'
 import type { CatalogItem } from '@/types'
+
+type ImportRowError = {
+  row: number
+  data: Record<string, string>
+  errors: string[]
+}
 
 export default function CatalogPage() {
   const [items, setItems] = useState<CatalogItem[]>([])
@@ -22,6 +28,7 @@ export default function CatalogPage() {
   const [importFile, setImportFile] = useState<File | null>(null)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ success: number; error: number } | null>(null)
+  const [importErrors, setImportErrors] = useState<ImportRowError[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editRow, setEditRow] = useState<Partial<CatalogItem>>({})
 
@@ -106,20 +113,34 @@ export default function CatalogPage() {
     if (!importFile) return
     setImporting(true)
     setImportResult(null)
+    setImportErrors([])
     try {
       const text = await importFile.text()
       const lines = text.replace(/^﻿/, '').split('\n').filter((l) => l.trim())
+      const headers = parseCSVLine(lines[0])
       const dataLines = lines.slice(1)
       let success = 0
-      let error = 0
-      for (const line of dataLines) {
-        const [sku, name, category, unit, salePrice, selfCost, supplier, stock] = parseCSVLine(line)
-        if (!sku || !name) { error++; continue }
+      const errors: ImportRowError[] = []
+
+      for (let i = 0; i < dataLines.length; i++) {
+        const values = parseCSVLine(dataLines[i])
+        const rowData: Record<string, string> = {}
+        headers.forEach((h, idx) => { rowData[h] = values[idx] ?? '' })
+
+        const [sku, name, category, unit, salePrice, selfCost, supplier, stock] = values
+        const rowErrors: string[] = []
+        if (!name) rowErrors.push('שם פריט חסר')
+
+        if (rowErrors.length > 0) {
+          errors.push({ row: i + 2, data: rowData, errors: rowErrors })
+          continue
+        }
+
         const res = await fetch('/api/catalog', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            sku,
+            sku: sku || undefined,
             name,
             category: category || undefined,
             unit: unit || undefined,
@@ -129,15 +150,44 @@ export default function CatalogPage() {
             stock: stock ? parseFloat(stock) : undefined,
           }),
         })
-        if (res.ok) success++
-        else error++
+
+        if (res.ok) {
+          success++
+        } else {
+          let reason = 'שגיאת שרת'
+          try { const j = await res.json(); if (j.error) reason = j.error } catch {}
+          errors.push({ row: i + 2, data: rowData, errors: [reason] })
+        }
       }
-      setImportResult({ success, error })
+
+      setImportResult({ success, error: errors.length })
+      setImportErrors(errors)
       if (success > 0) {
         await fetchItems()
-        if (error === 0) setTimeout(() => { setImportOpen(false); setImportResult(null); setImportFile(null) }, 1500)
+        if (errors.length === 0) setTimeout(() => { setImportOpen(false); setImportResult(null); setImportFile(null) }, 1500)
       }
     } finally { setImporting(false) }
+  }
+
+  function downloadErrorReport() {
+    if (importErrors.length === 0) return
+    const dataKeys = importErrors.length > 0 ? Object.keys(importErrors[0].data) : []
+    const csvHeaders = [...dataKeys, 'שורה', 'סיבת שגיאה']
+    const csvRows = importErrors.map((e) => [
+      ...dataKeys.map((k) => e.data[k] ?? ''),
+      String(e.row),
+      e.errors.join('; '),
+    ])
+    const csvContent = [csvHeaders, ...csvRows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'catalog_import_errors.csv'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   function exportCSV() {
@@ -170,7 +220,7 @@ export default function CatalogPage() {
         subtitle={`${displayedItems.length} פריטים${categoryFilter ? ` · ${categoryFilter}` : ''}`}
         actions={
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => { setImportOpen(true); setImportResult(null); setImportFile(null) }}>
+            <Button variant="secondary" onClick={() => { setImportOpen(true); setImportResult(null); setImportFile(null); setImportErrors([]) }}>
               <Upload size={16} />
               ייבוא CSV
             </Button>
@@ -342,6 +392,30 @@ export default function CatalogPage() {
           {importResult && (
             <div className={`text-sm rounded-lg px-3 py-2 ${importResult.error > 0 ? 'bg-yellow-500/10 text-yellow-300' : 'bg-green-500/10 text-green-300'}`}>
               יובאו בהצלחה: {importResult.success} · שגיאות: {importResult.error}
+            </div>
+          )}
+          {importErrors.length > 0 && (
+            <div className="space-y-2">
+              <div className="max-h-32 overflow-y-auto rounded-lg bg-red-500/5 border border-red-500/20 divide-y divide-red-500/10">
+                {importErrors.slice(0, 5).map((e) => (
+                  <div key={e.row} className="px-3 py-1.5 text-xs text-red-400">
+                    <span className="font-medium">שורה {e.row}:</span> {e.errors.join(' · ')}
+                  </div>
+                ))}
+                {importErrors.length > 5 && (
+                  <div className="px-3 py-1.5 text-xs text-gray-500">
+                    ועוד {importErrors.length - 5} שגיאות נוספות...
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={downloadErrorReport}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-colors"
+              >
+                <FileWarning size={14} />
+                הורד דוח שגיאות ({importErrors.length} שורות)
+              </button>
             </div>
           )}
           <div className="flex gap-2">

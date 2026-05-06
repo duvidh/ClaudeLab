@@ -32,7 +32,11 @@ export async function POST(req: NextRequest) {
     const item = await prisma.catalogItem.create({ data: body })
     return NextResponse.json({ data: item }, { status: 201 })
   } catch (error) {
-    console.error(error)
+    const msg = error instanceof Error ? error.message : ''
+    if (msg.includes('Unique constraint') || msg.includes('unique constraint')) {
+      const field = msg.includes('sku') ? 'מק"ט' : 'שם פריט'
+      return NextResponse.json({ error: `${field} כבר קיים במערכת` }, { status: 409 })
+    }
     return NextResponse.json({ error: 'שגיאה ביצירת פריט' }, { status: 500 })
   }
 }
