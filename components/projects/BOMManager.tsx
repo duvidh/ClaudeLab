@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, Package } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Plus, Trash2, Package, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
@@ -19,6 +19,15 @@ type BOMItem = {
   status: string
   supplier: { id: string; name: string } | null
   workPackage: { id: string; name: string } | null
+  catalogItem: { id: string; name: string; sku: string | null } | null
+}
+
+type CatalogSuggestion = {
+  id: string
+  name: string
+  unit: string | null
+  salePrice: number
+  sku: string | null
 }
 
 type WorkPackageSummary = { id: string; name: string }
@@ -146,18 +155,8 @@ export function BOMManager({ projectId }: BOMManagerProps) {
 
       {(workPackages.length > 0 || items.length > 0) && (
         <div className="flex gap-2 flex-wrap">
-          <Select
-            options={wpOptions}
-            value={filterWp}
-            onChange={(e) => setFilterWp(e.target.value)}
-            className="text-xs py-1"
-          />
-          <Select
-            options={statusFilterOptions}
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-xs py-1"
-          />
+          <Select options={wpOptions} value={filterWp} onChange={(e) => setFilterWp(e.target.value)} />
+          <Select options={statusFilterOptions} value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} />
         </div>
       )}
 
@@ -185,7 +184,14 @@ export function BOMManager({ projectId }: BOMManagerProps) {
               {filtered.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/40 group transition-colors">
                   <td className="px-3 py-2.5">
-                    <p className="text-gray-900 dark:text-white">{item.description}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-gray-900 dark:text-white">{item.description}</p>
+                      {item.catalogItem && (
+                        <span title="מקושר לקטלוג">
+                          <CheckCircle size={12} className="text-green-500 shrink-0" />
+                        </span>
+                      )}
+                    </div>
                     {item.partNumber && <p className="text-xs text-gray-400">#{item.partNumber}</p>}
                     {item.workPackage && <p className="text-xs text-blue-500">{item.workPackage.name}</p>}
                   </td>
@@ -239,6 +245,112 @@ export function BOMManager({ projectId }: BOMManagerProps) {
   )
 }
 
+// ─── Autocomplete Combobox ────────────────────────────────────────────────────
+
+function CatalogCombobox({
+  value,
+  onChange,
+  onSelect,
+}: {
+  value: string
+  onChange: (val: string) => void
+  onSelect: (item: CatalogSuggestion) => void
+}) {
+  const [suggestions, setSuggestions] = useState<CatalogSuggestion[]>([])
+  const [open, setOpen] = useState(false)
+  const [fetching, setFetching] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const search = useCallback((q: string) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (!q.trim()) { setSuggestions([]); setOpen(false); return }
+    timerRef.current = setTimeout(() => {
+      setFetching(true)
+      fetch(`/api/catalog?q=${encodeURIComponent(q)}`)
+        .then((r) => r.json())
+        .then((j) => { setSuggestions(j.data ?? []); setOpen(true) })
+        .catch(() => {})
+        .finally(() => setFetching(false))
+    }, 200)
+  }, [])
+
+  useEffect(() => { search(value) }, [value, search])
+
+  // Close on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="text-sm text-gray-700 dark:text-gray-300 font-medium block mb-1">
+        תיאור פריט *
+      </label>
+      <div className="relative">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => { onChange(e.target.value); }}
+          onFocus={() => { if (suggestions.length > 0) setOpen(true) }}
+          placeholder="הקלד שם מוצר לחיפוש בקטלוג..."
+          className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 pe-8"
+          autoComplete="off"
+          dir="rtl"
+        />
+        {fetching && (
+          <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+            <div className="w-3.5 h-3.5 border border-blue-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+
+      {open && suggestions.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+          <p className="text-[10px] text-gray-400 px-3 pt-2 pb-1">מוצרים מהקטלוג</p>
+          <ul className="max-h-48 overflow-y-auto">
+            {suggestions.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className="w-full text-right px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onMouseDown={(e) => { e.preventDefault(); onSelect(item); setOpen(false) }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-gray-900 dark:text-white">{item.name}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {item.unit && <span className="text-xs text-gray-400">{item.unit}</span>}
+                      {item.salePrice > 0 && (
+                        <span className="text-xs text-green-600 dark:text-green-400 tabular-nums">
+                          ₪{item.salePrice.toLocaleString('he-IL')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {item.sku && <p className="text-[10px] text-gray-400 mt-0.5">מק"ט: {item.sku}</p>}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-[11px] text-gray-400">
+              לא מצאת? המשך להקליד — הפריט יתווסף לקטלוג אוטומטית
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── BOM Item Form ────────────────────────────────────────────────────────────
+
 function BOMItemForm({
   onSubmit,
   onCancel,
@@ -252,6 +364,7 @@ function BOMItemForm({
 }) {
   const [form, setForm] = useState({
     description: '',
+    catalogItemId: '',
     partNumber: '',
     quantity: '1',
     unit: '',
@@ -264,17 +377,29 @@ function BOMItemForm({
 
   function set(k: keyof typeof form, v: string) { setForm((p) => ({ ...p, [k]: v })) }
 
+  function handleCatalogSelect(item: CatalogSuggestion) {
+    setForm((p) => ({
+      ...p,
+      description: item.name,
+      catalogItemId: item.id,
+      unit: item.unit ?? p.unit,
+      unitPrice: item.salePrice > 0 ? item.salePrice.toString() : p.unitPrice,
+    }))
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.description) return
     setLoading(true)
     try {
       await onSubmit({
-        ...form,
-        quantity: parseFloat(form.quantity) || 1,
-        unitPrice: form.unitPrice ? parseFloat(form.unitPrice) : undefined,
+        description: form.description,
+        catalogItemId: form.catalogItemId || undefined,
         partNumber: form.partNumber || undefined,
+        quantity: parseFloat(form.quantity) || 1,
         unit: form.unit || undefined,
+        unitPrice: form.unitPrice ? parseFloat(form.unitPrice) : undefined,
+        status: form.status,
         supplierId: form.supplierId || undefined,
         workPackageId: form.workPackageId || undefined,
       })
@@ -292,7 +417,19 @@ function BOMItemForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <Input label="תיאור פריט *" placeholder="לדוגמה: צינור PVC 4 אינץ'" value={form.description} onChange={(e) => set('description', e.target.value)} />
+      <CatalogCombobox
+        value={form.description}
+        onChange={(v) => setForm((p) => ({ ...p, description: v, catalogItemId: '' }))}
+        onSelect={handleCatalogSelect}
+      />
+
+      {form.catalogItemId && (
+        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+          <CheckCircle size={12} />
+          מוצר נבחר מהקטלוג — השדות מולאו אוטומטית
+        </p>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <Input label='מק"ט / Part Number' placeholder="אופציונלי" value={form.partNumber} onChange={(e) => set('partNumber', e.target.value)} />
         <Input label="יחידת מידה" placeholder={'מ"ר, מ\', יח\''} value={form.unit} onChange={(e) => set('unit', e.target.value)} />

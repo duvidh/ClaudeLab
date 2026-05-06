@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const search = searchParams.get('search')
+    const search = searchParams.get('search') ?? searchParams.get('q')
     const activeOnly = searchParams.get('active') !== 'false'
 
     const items = await prisma.catalogItem.findMany({

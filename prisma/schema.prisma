@@ -386,7 +386,7 @@ model QuoteItem {
 
 model CatalogItem {
   id         String      @id @default(cuid())
-  sku        String      @unique
+  sku        String?     @unique
   name       String
   category   String?
   unit       String?
@@ -396,6 +396,7 @@ model CatalogItem {
   stock      Float?
   isActive   Boolean     @default(true)
   quoteItems QuoteItem[]
+  bomItems   BOMItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -576,20 +577,22 @@ model WorkPackage {
 // BOMItem — Bill of Materials line attached to a project (and optionally a work package)
 // status: REQUIRED | ORDERED | DELIVERED | INSTALLED | CANCELLED
 model BOMItem {
-  id            String       @id @default(cuid())
-  projectId     String
-  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  workPackageId String?
-  workPackage   WorkPackage? @relation(fields: [workPackageId], references: [id])
-  partNumber    String?
-  description   String
-  quantity      Float        @default(1)
-  unit          String?
-  unitPrice     Float?
+  id             String        @id @default(cuid())
+  projectId      String
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workPackageId  String?
+  workPackage    WorkPackage?  @relation(fields: [workPackageId], references: [id])
+  catalogItemId  String?
+  catalogItem    CatalogItem?  @relation(fields: [catalogItemId], references: [id])
+  partNumber     String?
+  description    String
+  quantity       Float         @default(1)
+  unit           String?
+  unitPrice      Float?
   // status: REQUIRED | ORDERED | DELIVERED | INSTALLED | CANCELLED
-  status        String       @default("REQUIRED")
-  supplierId    String?
-  supplier      Supplier?    @relation(fields: [supplierId], references: [id])
+  status         String        @default("REQUIRED")
+  supplierId     String?
+  supplier       Supplier?     @relation(fields: [supplierId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
