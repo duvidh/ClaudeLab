@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Check, X, GitPullRequest, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Check, X, GitPullRequest, ChevronDown, ChevronUp, CheckSquare, Square } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -17,6 +17,7 @@ type ChangeRequest = {
   costImpact: number
   timeImpact: number
   status: string
+  isCompleted: boolean
   requestedBy: { id: string; name: string } | null
   approvedBy: { id: string; name: string } | null
   approvedAt: string | null
@@ -58,6 +59,7 @@ export function ChangeRequests({ projectId }: ChangeRequestsProps) {
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [approverSelectId, setApproverSelectId] = useState<string | null>(null)
   const [selectedApproverId, setSelectedApproverId] = useState('')
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -93,11 +95,26 @@ export function ChangeRequests({ projectId }: ChangeRequestsProps) {
       })
       if (res.ok) {
         const json = await res.json()
-        setItems((prev) => prev.map((c) => c.id === id ? json.data : c))
+        setItems((prev) => prev.map((c) => c.id === id ? { ...c, ...json.data } : c))
         setApproverSelectId(null)
         setSelectedApproverId('')
       }
     } finally { setApprovingId(null) }
+  }
+
+  async function handleToggleCompleted(id: string, isCompleted: boolean) {
+    setTogglingId(id)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/change-requests`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isCompleted }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setItems((prev) => prev.map((c) => c.id === id ? { ...c, isCompleted: json.data.isCompleted } : c))
+      }
+    } finally { setTogglingId(null) }
   }
 
   const filtered = filter ? items.filter((c) => c.status === filter) : items
@@ -166,6 +183,11 @@ export function ChangeRequests({ projectId }: ChangeRequestsProps) {
                       <span className={`text-[11px] px-1.5 py-0.5 rounded ${STATUS_COLOR[cr.status] ?? ''}`}>
                         {STATUS_LABEL[cr.status] ?? cr.status}
                       </span>
+                      {cr.status === 'APPROVED' && cr.isCompleted && (
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-700 dark:text-blue-400">
+                          בוצע
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 mt-1.5 text-xs text-gray-500">
                       {cr.costImpact !== 0 && (
@@ -178,7 +200,7 @@ export function ChangeRequests({ projectId }: ChangeRequestsProps) {
                           זמן: {cr.timeImpact > 0 ? '+' : ''}{cr.timeImpact} ימים
                         </span>
                       )}
-                      {cr.requestedBy && <span>הוגש ע"י {cr.requestedBy.name}</span>}
+                      {cr.requestedBy && <span>הוגש ע&quot;י {cr.requestedBy.name}</span>}
                       <span>{formatDate(cr.createdAt)}</span>
                     </div>
                   </button>
@@ -231,9 +253,27 @@ export function ChangeRequests({ projectId }: ChangeRequestsProps) {
                     </div>
                   )}
 
+                  {/* isCompleted toggle — only for APPROVED CRs */}
+                  {cr.status === 'APPROVED' && (
+                    <button
+                      onClick={() => handleToggleCompleted(cr.id, !cr.isCompleted)}
+                      disabled={togglingId === cr.id}
+                      className={`mt-2 inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-all disabled:opacity-60 ${
+                        cr.isCompleted
+                          ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400 hover:bg-blue-500/25'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {cr.isCompleted
+                        ? <CheckSquare size={13} className="shrink-0" />
+                        : <Square size={13} className="shrink-0" />}
+                      בוצע בפועל
+                    </button>
+                  )}
+
                   {cr.status !== 'PENDING' && cr.approvedBy && (
                     <p className="text-xs text-gray-500 mt-1.5">
-                      {cr.status === 'APPROVED' ? 'אושר' : 'נדחה'} ע"י {cr.approvedBy.name}
+                      {cr.status === 'APPROVED' ? 'אושר' : 'נדחה'} ע&quot;י {cr.approvedBy.name}
                       {cr.approvedAt && ` · ${formatDate(cr.approvedAt)}`}
                     </p>
                   )}

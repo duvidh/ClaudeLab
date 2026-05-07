@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { notify } from '@/lib/notify'
+import { calculateAndUpdateProjectProgress } from '@/lib/project-progress'
 
 export async function GET(
   _req: NextRequest,
@@ -47,6 +48,7 @@ export async function POST(
         qualityCheck: { select: { id: true, title: true } },
       },
     })
+    await calculateAndUpdateProjectProgress(id)
     return NextResponse.json({ data: ncr }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת דוח אי-התאמה' }, { status: 500 })
@@ -91,6 +93,7 @@ export async function PATCH(
         `project:${id}`
       )
     }
+    await calculateAndUpdateProjectProgress(id)
 
     return NextResponse.json({ data: ncr })
   } catch {

@@ -318,6 +318,7 @@ model ChangeRequest {
   timeImpact    Int       @default(0)
   // status: PENDING | APPROVED | REJECTED
   status        String    @default("PENDING")
+  isCompleted   Boolean   @default(false)
   requestedById String?
   requestedBy   Employee? @relation("CRRequestedBy", fields: [requestedById], references: [id])
   approvedById  String?

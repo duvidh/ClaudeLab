@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { updateProjectProgress } from '@/lib/project-progress'
+import { calculateAndUpdateProjectProgress } from '@/lib/project-progress'
 
 export async function GET(
   _req: NextRequest,
@@ -47,7 +47,7 @@ export async function POST(
         assignee: { select: { id: true, name: true } },
       },
     })
-    await updateProjectProgress(id)
+    await calculateAndUpdateProjectProgress(id)
     return NextResponse.json({ data: workPackage }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת חבילת עבודה' }, { status: 500 })
@@ -81,7 +81,7 @@ export async function PATCH(
         assignee: { select: { id: true, name: true } },
       },
     })
-    await updateProjectProgress(id)
+    await calculateAndUpdateProjectProgress(id)
     return NextResponse.json({ data: workPackage })
   } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון חבילת העבודה' }, { status: 500 })
@@ -100,7 +100,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'נדרש מזהה חבילת עבודה' }, { status: 400 })
     }
     await prisma.workPackage.delete({ where: { id: wpId, projectId: id } })
-    await updateProjectProgress(id)
+    await calculateAndUpdateProjectProgress(id)
     return NextResponse.json({ data: { success: true } })
   } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת חבילת העבודה' }, { status: 500 })

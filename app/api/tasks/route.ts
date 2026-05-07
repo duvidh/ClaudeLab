@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { updateProjectProgress } from '@/lib/project-progress'
+import { calculateAndUpdateProjectProgress } from '@/lib/project-progress'
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
         project: { select: { id: true, name: true } },
       },
     })
-    if (task.projectId) await updateProjectProgress(task.projectId)
+    if (task.projectId) await calculateAndUpdateProjectProgress(task.projectId)
     return NextResponse.json({ data: task }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת המשימה' }, { status: 500 })
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest) {
     const updateData: Record<string, unknown> = { ...data }
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
     const task = await prisma.task.update({ where: { id }, data: updateData })
-    if (task.projectId) await updateProjectProgress(task.projectId)
+    if (task.projectId) await calculateAndUpdateProjectProgress(task.projectId)
     return NextResponse.json({ data: task })
   } catch {
     return NextResponse.json({ error: 'שגיאה בעדכון המשימה' }, { status: 500 })
@@ -78,7 +78,7 @@ export async function DELETE(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'חסר מזהה משימה' }, { status: 400 })
     const task = await prisma.task.findUnique({ where: { id }, select: { projectId: true } })
     await prisma.task.delete({ where: { id } })
-    if (task?.projectId) await updateProjectProgress(task.projectId)
+    if (task?.projectId) await calculateAndUpdateProjectProgress(task.projectId)
     return NextResponse.json({ data: { success: true } })
   } catch {
     return NextResponse.json({ error: 'שגיאה במחיקת המשימה' }, { status: 500 })

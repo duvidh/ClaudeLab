@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { notify } from '@/lib/notify'
+import { calculateAndUpdateProjectProgress } from '@/lib/project-progress'
 
 export async function GET(
   _req: NextRequest,
@@ -45,6 +46,7 @@ export async function POST(
         approvedBy: { select: { id: true, name: true } },
       },
     })
+    await calculateAndUpdateProjectProgress(id)
     return NextResponse.json({ data: changeRequest }, { status: 201 })
   } catch {
     return NextResponse.json({ error: 'שגיאה ביצירת בקשת שינוי' }, { status: 500 })
@@ -58,10 +60,29 @@ export async function PATCH(
   try {
     const { id } = await params
     const body = await req.json()
-    const { id: changeRequestId, action, approvedById } = body
+    const { id: changeRequestId, action, approvedById, isCompleted } = body
 
-    if (!changeRequestId || !action) {
-      return NextResponse.json({ error: 'נדרשים מזהה בקשה ופעולה' }, { status: 400 })
+    if (!changeRequestId) {
+      return NextResponse.json({ error: 'נדרש מזהה בקשה' }, { status: 400 })
+    }
+
+    // isCompleted toggle — only valid on APPROVED CRs, no action key required
+    if (isCompleted !== undefined && action === undefined) {
+      const changeRequest = await prisma.changeRequest.update({
+        where: { id: changeRequestId, projectId: id },
+        data: { isCompleted: Boolean(isCompleted) },
+        include: {
+          requestedBy: { select: { id: true, name: true } },
+          approvedBy: { select: { id: true, name: true } },
+        },
+      })
+      await calculateAndUpdateProjectProgress(id)
+      return NextResponse.json({ data: changeRequest })
+    }
+
+    // approve / reject action
+    if (!action) {
+      return NextResponse.json({ error: 'נדרשת פעולה' }, { status: 400 })
     }
     if (action !== 'APPROVE' && action !== 'REJECT') {
       return NextResponse.json({ error: 'פעולה לא חוקית — השתמש ב-APPROVE או REJECT' }, { status: 400 })
@@ -108,6 +129,7 @@ export async function PATCH(
       action === 'APPROVE' ? 'success' : 'warning',
       `project:${id}`
     )
+    await calculateAndUpdateProjectProgress(id)
 
     return NextResponse.json({ data: changeRequest })
   } catch {
